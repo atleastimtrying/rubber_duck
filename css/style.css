@@ -1,0 +1,14 @@
+.top-buffer{
+  margin-top:20px;
+}
+
+footer{
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  padding:8px;
+  background:#333333;
+  color:white;
+  text-align:right;
+}
