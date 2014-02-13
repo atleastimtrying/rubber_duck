@@ -4,5 +4,7 @@ class duck.Brain
 
   quack: (event, options) ->
     console.log options.message
-    options.render "I'm sorry, Dave, I just don't know."
+    $(@duck).trigger 'response'
+      next_question: 'Hello.'
+      answer_type: 'short'
 

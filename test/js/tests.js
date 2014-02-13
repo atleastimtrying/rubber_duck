@@ -14,7 +14,7 @@
   })();
 
   $(function() {
-    return window.duck = new duck.App;
+    return window.exposed_duck = new duck.App;
   });
 
   duck.Bill = (function() {
@@ -38,7 +38,10 @@
 
     Brain.prototype.quack = function(event, options) {
       console.log(options.message);
-      return options.render("I'm sorry, Dave, I just don't know.");
+      return $(this.duck).trigger('response', {
+        next_question: 'Hello.',
+        answer_type: 'short'
+      });
     };
 
     return Brain;
@@ -91,6 +94,30 @@
 
   })();
 
+  duck.PatternMatcher = (function() {
+
+    function PatternMatcher(str) {
+      this.str = str;
+    }
+
+    PatternMatcher.prototype.toString = function() {
+      return this.str;
+    };
+
+    PatternMatcher.prototype.toTokens = function() {
+      return this.str;
+    };
+
+    PatternMatcher.prototype.toSentances = function() {
+      return $.map(this.str.split('.'), function() {
+        return new duck.PatternMatcher();
+      });
+    };
+
+    return PatternMatcher;
+
+  })();
+
   window.duck.Success = (function() {
 
     function Success(duck) {
@@ -118,22 +145,51 @@
   describe("The Brain", function() {
     it("can be instantiated", function() {
       return expect(function() {
-        return new duck.Brain();
+        return new duck.Brain(function() {});
       }).not.toThrow();
     });
     return describe("when processing text", function() {
       beforeEach(function() {
-        return this.brain = new duck.Brain();
+        this.duck = function() {};
+        return this.brain = new duck.Brain(this.duck);
       });
       return it("can give an answer", function() {
-        var answer;
-        answer = this.brain.giveAnswer;
-        expect(answer.toString()).toEqual(answer);
-        return expect(answer.length).toBeGreaterThan(1);
+        $(this.duck).on('response', function(event, response) {
+          return expect(response['next_question']).toEqual("Hello.");
+        });
+        return this.brain.quack({}, {
+          message: "Hi, ducky"
+        });
       });
     });
   });
 
-  describe("The duck", function() {});
+  describe("The duck", function() {
+    return it("can be instantiated", function() {
+      return expect(function() {
+        return new duck.App();
+      }).not.toThrow();
+    });
+  });
+
+  describe("The Brain's Pattern Matcher", function() {
+    it("can be instantiated", function() {
+      return expect(function() {
+        return new duck.PatternMatcher("some text");
+      }).not.toThrow();
+    });
+    return describe("when given multiple sentances", function() {
+      beforeEach(function() {
+        var text;
+        text = "I'm not a pheasant plucker, I'm a pheasant plucker's son. I'm only plucking pheasants til the pheasant plucker comes.";
+        return this.matcher = new duck.PatternMatcher(text);
+      });
+      return it("can produce an array of sentance patterns", function() {
+        var sentances;
+        sentances = this.matcher.toSentances();
+        return expect(sentances[0].toSentances).toBeDefined();
+      });
+    });
+  });
 
 }).call(this);
