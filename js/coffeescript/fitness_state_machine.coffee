@@ -9,7 +9,7 @@ class duck.FitnessStateMachine
     for state in @states(@)
       if state.qualifies()
         @current_state = state
-        @visited_states.push state
+        @visited_states.push state.name
         state.pre_action()
         out =
           next_question: state.question()
@@ -44,12 +44,23 @@ class duck.FitnessStateMachine
       },
       {
         qualifies: ->
-          machine.visited_states.length is 1 and !machine.noun
+          !machine.noun
         pre_action: ->
         post_action: ->
-          machine.noun
+          machine.noun = machine.answer if machine.answer and machine.answer.trim() isnt ''
         question: ->
           "What should I call the function / object / thing that is misbehaving?"
+        answer_type: -> 'short'
+      },
+      {
+        name: 'why'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun
+        pre_action: ->
+        post_action: ->
+        question: ->
+          "Why do you need #{machine.noun}?"
         answer_type: -> 'short'
       }
     ]

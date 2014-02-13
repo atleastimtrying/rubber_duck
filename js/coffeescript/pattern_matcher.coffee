@@ -22,7 +22,7 @@ class duck.PatternMatcher
     /(?:\s*\.\s*| and | or | but | although | except (?:that))/
 
   nounMatcher: ->
-    /(?:this )?(?:(?:(.+)|it)(?: is| is| ain't| aint|'s)|i have a (.+)|my (.+))/i
+    /(?:this )?(?:(?:(.+)|it)(?: is| is| ain't| aint| does|'s)|i have a (.+)|my (.+))/i
 
   disqualifyNoun: (noun)->
     return true unless noun

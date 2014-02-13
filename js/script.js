@@ -35,17 +35,24 @@
 
     function Brain(app) {
       this.app = app;
+      this.reset = __bind(this.reset, this);
+
       this.quack = __bind(this.quack, this);
 
-      this.machine = new duck.FitnessStateMachine();
-      this.quack({}, {});
+      this.reset();
       $(this.app).on('quack', this.quack);
+      $(this.app).on('reset', this.reset);
     }
 
     Brain.prototype.quack = function(event, options) {
       var state;
       state = this.machine.getNext(options.message);
       return $(this.app).trigger('response', state);
+    };
+
+    Brain.prototype.reset = function(event, options) {
+      this.machine = new duck.FitnessStateMachine();
+      return this.quack({}, {});
     };
 
     return Brain;
@@ -56,6 +63,8 @@
 
     function Ears(duck) {
       this.duck = duck;
+      this.reset = __bind(this.reset, this);
+
       this.quack = __bind(this.quack, this);
 
       this.check_key = __bind(this.check_key, this);
@@ -67,9 +76,12 @@
       $('#duck').on({
         keyup: this.check_key
       }, '.current');
-      return $('#duck').on({
+      $('#duck').on({
         click: this.quack
       }, '.current_submit');
+      return $('#duck').on({
+        click: this.reset
+      }, '.current_reset');
     };
 
     Ears.prototype.check_key = function(event) {
@@ -85,6 +97,13 @@
       return this.duck.trigger('quack', {
         message: $('#duck .current').val()
       });
+    };
+
+    Ears.prototype.reset = function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+      return this.duck.trigger('reset');
     };
 
     return Ears;
@@ -110,7 +129,7 @@
         state = _ref[_i];
         if (state.qualifies()) {
           this.current_state = state;
-          this.visited_states.push(state);
+          this.visited_states.push(state.name);
           state.pre_action();
           out = {
             next_question: state.question(),
@@ -164,14 +183,32 @@
           }
         }, {
           qualifies: function() {
-            return machine.visited_states.length === 1 && !machine.noun;
+            return !machine.noun;
           },
           pre_action: function() {},
           post_action: function() {
-            return machine.noun;
+            if (machine.answer && machine.answer.trim() !== '') {
+              return machine.noun = machine.answer;
+            }
           },
           question: function() {
             return "What should I call the function / object / thing that is misbehaving?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'why',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Why do you need " + machine.noun + "?";
           },
           answer_type: function() {
             return 'short';
@@ -263,7 +300,7 @@
     };
 
     PatternMatcher.prototype.nounMatcher = function() {
-      return /(?:this )?(?:(?:(.+)|it)(?: is| is| ain't| aint|'s)|i have a (.+)|my (.+))/i;
+      return /(?:this )?(?:(?:(.+)|it)(?: is| is| ain't| aint| does|'s)|i have a (.+)|my (.+))/i;
     };
 
     PatternMatcher.prototype.disqualifyNoun = function(noun) {
@@ -345,7 +382,7 @@
       if (val) {
         this.print_answer(val);
       }
-      return $('#duck .current, #duck .current_submit').remove();
+      return $('#duck .current, #duck .current_submit, .current_reset').remove();
     };
 
     return Renderer;

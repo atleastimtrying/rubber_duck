@@ -26,4 +26,4 @@ class window.duck.Renderer
   strip_current: =>
     val = $('#duck .current').val()
     @print_answer val if val
-    $('#duck .current, #duck .current_submit').remove()
+    $('#duck .current, #duck .current_submit, .current_reset').remove()
