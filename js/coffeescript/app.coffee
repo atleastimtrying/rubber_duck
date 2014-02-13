@@ -3,4 +3,4 @@ class window.duck.App
     @bill = new duck.Bill $ @
     @brain = new duck.Brain $ @
 $ ->
-  new duck.App
+  window.exposed_duck = new duck.App
