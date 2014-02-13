@@ -5,8 +5,8 @@
   window.duck.App = (function() {
 
     function App() {
-      this.bill = new duck.Bill(this);
-      this.brain = new duck.Brain(this);
+      this.bill = new duck.Bill($(this));
+      this.brain = new duck.Brain($(this));
     }
 
     return App;
@@ -23,6 +23,8 @@
       this.duck = duck;
       this.navigation = new window.duck.Navigation(this.duck);
       this.success = new window.duck.Success(this.duck);
+      this.renderer = new window.duck.Renderer(this.duck);
+      this.ears = new window.duck.Ears(this.duck);
     }
 
     return Bill;
@@ -31,37 +33,154 @@
 
   duck.Brain = (function() {
 
-    function Brain(duck) {
-      this.duck = duck;
-      $(this.duck).on('quack', this.quack);
+    function Brain(app) {
+      this.app = app;
+      this.quack = __bind(this.quack, this);
+
+      this.machine = new duck.FitnessStateMachine();
+      this.quack({}, {});
+      $(this.app).on('quack', this.quack);
     }
 
     Brain.prototype.quack = function(event, options) {
-      console.log(options.message);
-      return $(this.duck).trigger('response', {
-        next_question: 'Hello.',
-        answer_type: 'short'
-      });
+      var state;
+      state = this.machine.getNext(options.message);
+      return $(this.app).trigger('response', state);
     };
 
     return Brain;
 
   })();
 
-  duck.Conversation = (function() {
+  duck.Ears = (function() {
 
-    function Conversation() {
-      this.conversation = [];
+    function Ears(duck) {
+      this.duck = duck;
+      this.quack = __bind(this.quack, this);
+
+      this.check_key = __bind(this.check_key, this);
+
+      this.bindUI();
     }
 
-    Conversation.prototype.add = function(question, answer) {
-      return this.conversation.push({
-        question: question,
-        answer: answer
+    Ears.prototype.bindUI = function() {
+      $('#duck').on({
+        keyup: this.check_key
+      }, '.current');
+      return $('#duck').on({
+        click: this.quack
+      }, '.current_submit');
+    };
+
+    Ears.prototype.check_key = function(event) {
+      if (event.keyCode === 13) {
+        return this.quack();
+      }
+    };
+
+    Ears.prototype.quack = function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+      return this.duck.trigger('quack', {
+        message: $('#duck .current').val()
       });
     };
 
-    return Conversation;
+    return Ears;
+
+  })();
+
+  duck.FitnessStateMachine = (function() {
+
+    function FitnessStateMachine() {
+      this.visited_states = [];
+      this.current_state = null;
+      this.noun = null;
+    }
+
+    FitnessStateMachine.prototype.getNext = function(answer) {
+      var out, state, _i, _len, _ref;
+      this.answer = answer;
+      if (this.current_state) {
+        this.current_state.post_action();
+      }
+      _ref = this.states(this);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        state = _ref[_i];
+        if (state.qualifies()) {
+          this.current_state = state;
+          this.visited_states.push(state);
+          state.pre_action();
+          out = {
+            next_question: state.question(),
+            answer_type: state.answer_type()
+          };
+          return out;
+        }
+      }
+      return {
+        next_question: "Sorry, my super-duck-powers have failed. Have you tried google or stack overflow?",
+        answer_type: 'reset'
+      };
+    };
+
+    FitnessStateMachine.prototype.states = function(machine) {
+      return [
+        {
+          qualifies: function() {
+            return machine.visited_states.length === 0;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            var nouns, pattern;
+            pattern = new duck.PatternMatcher(machine.answer);
+            nouns = pattern.toLikelyNouns();
+            return machine.noun = nouns.sort(function(a, b) {
+              return a.length - b.length;
+            })[0];
+          },
+          question: function() {
+            return "Can you describe the problem in a paragraph? Please use small sentences, I'm only a duck.";
+          },
+          answer_type: function() {
+            return 'long';
+          }
+        }, {
+          qualifies: function() {
+            return machine.visited_states.length === 1 && machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            if (machine.answer.toLowerCase() === 'no') {
+              return machine.noun === null;
+            }
+          },
+          question: function() {
+            return "Is " + machine.noun + " the thing that has the problem?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          qualifies: function() {
+            return machine.visited_states.length === 1 && !machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            return machine.noun;
+          },
+          question: function() {
+            return "What should I call the function / object / thing that is misbehaving?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }
+      ];
+    };
+
+    return FitnessStateMachine;
 
   })();
 
@@ -87,7 +206,7 @@
       target = $(link.attr('href'));
       return $('html, body').animate({
         scrollTop: target.offset().top
-      }, 2000);
+      }, 500);
     };
 
     return Navigation;
@@ -104,17 +223,132 @@
       return this.str;
     };
 
-    PatternMatcher.prototype.toTokens = function() {
-      return this.str;
+    PatternMatcher.prototype.toClauses = function() {
+      var clause, _i, _len, _ref, _results;
+      _ref = this.str.split(this.clauseBoundryRegex());
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        clause = _ref[_i];
+        _results.push(new duck.PatternMatcher(clause));
+      }
+      return _results;
     };
 
-    PatternMatcher.prototype.toSentances = function() {
-      return $.map(this.str.split('.'), function() {
-        return new duck.PatternMatcher();
-      });
+    PatternMatcher.prototype.toLikelyNouns = function() {
+      var found_nouns, match, noun, _i, _len, _ref;
+      found_nouns = [];
+      _ref = this.toClauses();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        match = _ref[_i];
+        noun = match.findNoun();
+        if (!this.disqualifyNoun(noun)) {
+          found_nouns.push(noun);
+        }
+      }
+      console.log(found_nouns);
+      return found_nouns;
+    };
+
+    PatternMatcher.prototype.findNoun = function() {
+      var match;
+      match = this.str.match(this.nounMatcher());
+      if (match) {
+        return match[1];
+      }
+      return false;
+    };
+
+    PatternMatcher.prototype.clauseBoundryRegex = function() {
+      return /(?:\s*\.\s*| and | or | but | although | except (?:that))/;
+    };
+
+    PatternMatcher.prototype.nounMatcher = function() {
+      return /(?:this )?(?:(?:(.+)|it)(?: is| is| ain't| aint|'s)|i have a (.+)|my (.+))/i;
+    };
+
+    PatternMatcher.prototype.disqualifyNoun = function(noun) {
+      if (!noun) {
+        return true;
+      }
+      if (noun === '') {
+        return true;
+      }
+      return noun === 'it' || noun === 'this' || noun === 'that' || noun === 'my app' || noun === 'this app';
     };
 
     return PatternMatcher;
+
+  })();
+
+  window.duck.Renderer = (function() {
+
+    function Renderer(duck) {
+      this.duck = duck;
+      this.strip_current = __bind(this.strip_current, this);
+
+      this.print_reset = __bind(this.print_reset, this);
+
+      this.print_short = __bind(this.print_short, this);
+
+      this.print_long = __bind(this.print_long, this);
+
+      this.print_answer = __bind(this.print_answer, this);
+
+      this.print_question = __bind(this.print_question, this);
+
+      this.response = __bind(this.response, this);
+
+      this.container = $('#duck');
+      this.question_template = $('#template_question').html();
+      this.answer_template = $('#template_answer').html();
+      this.long_template = $('#template_long').html();
+      this.short_template = $('#template_short').html();
+      this.reset_template = $('#template_reset').html();
+      this.duck.on('response', this.response);
+    }
+
+    Renderer.prototype.response = function(event, options) {
+      this.strip_current();
+      this.print_question(options.next_question);
+      return this['print_' + options.answer_type]();
+    };
+
+    Renderer.prototype.print_question = function(text) {
+      return this.container.append(Mustache.render(this.question_template, {
+        question: text
+      }));
+    };
+
+    Renderer.prototype.print_answer = function(text) {
+      return this.container.append(Mustache.render(this.answer_template, {
+        answer: text
+      }));
+    };
+
+    Renderer.prototype.print_long = function() {
+      this.container.append(Mustache.render(this.long_template, {}));
+      return $('#duck .current').focus();
+    };
+
+    Renderer.prototype.print_short = function() {
+      this.container.append(Mustache.render(this.short_template, {}));
+      return $('#duck .current').focus();
+    };
+
+    Renderer.prototype.print_reset = function() {
+      return this.container.append(Mustache.render(this.reset_template, {}));
+    };
+
+    Renderer.prototype.strip_current = function() {
+      var val;
+      val = $('#duck .current').val();
+      if (val) {
+        this.print_answer(val);
+      }
+      return $('#duck .current, #duck .current_submit').remove();
+    };
+
+    return Renderer;
 
   })();
 
@@ -155,7 +389,7 @@
       });
       return it("can give an answer", function() {
         $(this.duck).on('response', function(event, response) {
-          return expect(response['next_question']).toEqual("Hello.");
+          return expect(response['next_question']).toEqual("Why?");
         });
         return this.brain.quack({}, {
           message: "Hi, ducky"
@@ -172,13 +406,21 @@
     });
   });
 
+  describe("The Brain's Fitness-Powered State Machine", function() {
+    return it("can be instantiated", function() {
+      return expect(function() {
+        return new duck.FitnessStateMachine();
+      }).not.toThrow();
+    });
+  });
+
   describe("The Brain's Pattern Matcher", function() {
     it("can be instantiated", function() {
       return expect(function() {
         return new duck.PatternMatcher("some text");
       }).not.toThrow();
     });
-    return describe("when given multiple sentances", function() {
+    describe("when given multiple sentances", function() {
       beforeEach(function() {
         var text;
         text = "I'm not a pheasant plucker, I'm a pheasant plucker's son. I'm only plucking pheasants til the pheasant plucker comes.";
@@ -186,8 +428,21 @@
       });
       return it("can produce an array of sentance patterns", function() {
         var sentances;
-        sentances = this.matcher.toSentances();
-        return expect(sentances[0].toSentances).toBeDefined();
+        sentances = this.matcher.toClauses();
+        return expect(sentances[0].toClauses).toBeDefined();
+      });
+    });
+    return describe("semantic analysis", function() {
+      beforeEach(function() {
+        var text;
+        text = "My app is not working. I have a kickboxing champion and it is not picking up its thingammy";
+        return this.matcher = new duck.PatternMatcher(text);
+      });
+      it("should split the text into clauses", function() {
+        return expect(this.matcher.toClauses().length).toEqual(3);
+      });
+      return it("should find likely nouns from the clauses", function() {
+        return expect(this.matcher.toLikelyNouns().length).toEqual(1);
       });
     });
   });

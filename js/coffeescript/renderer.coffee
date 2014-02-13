@@ -5,6 +5,7 @@ class window.duck.Renderer
     @answer_template = $('#template_answer').html()
     @long_template = $('#template_long').html()
     @short_template = $('#template_short').html()
+    @reset_template = $('#template_reset').html()
     @duck.on 'response', @response
   response: (event, options)=>
     @strip_current()
@@ -20,6 +21,8 @@ class window.duck.Renderer
   print_short: =>
     @container.append Mustache.render @short_template, {}
     $('#duck .current').focus()
+  print_reset: =>
+    @container.append Mustache.render @reset_template, {}
   strip_current: =>
     val = $('#duck .current').val()
     @print_answer val if val
