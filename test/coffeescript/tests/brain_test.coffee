@@ -4,11 +4,11 @@ describe "The Brain", ->
       new duck.Brain()
     .not.toThrow()
 
-  # describe "when processing text", ->
-  #   beforeEach ->
-  #     @processor = new Processor()
+  describe "when processing text", ->
+    beforeEach ->
+      @brain = new duck.Brain()
 
-  #   it "can give an answer", ->
-  #     answer = @processor.giveAnswer
-  #     expect(answer.toString()).toEqual(answer)
-  #     expect(answer.length).toBeGreaterThan(1)
+    it "can give an answer", ->
+      answer = @brain.giveAnswer
+      expect(answer.toString()).toEqual(answer)
+      expect(answer.length).toBeGreaterThan(1)

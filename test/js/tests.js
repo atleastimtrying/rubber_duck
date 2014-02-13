@@ -14,7 +14,7 @@
   })();
 
   $(function() {
-    return window.duck = new App;
+    return window.duck = new duck.App;
   });
 
   duck.Bill = (function() {
@@ -116,19 +116,24 @@
   })();
 
   describe("The Brain", function() {
-    return it("can be instantiated", function() {
+    it("can be instantiated", function() {
       return expect(function() {
         return new duck.Brain();
       }).not.toThrow();
     });
-  });
-
-  describe("The duck", function() {
-    return it("can be instantiated", function() {
-      return expect(function() {
-        return new duck.App(function() {});
-      }).not.toThrow();
+    return describe("when processing text", function() {
+      beforeEach(function() {
+        return this.brain = new duck.Brain();
+      });
+      return it("can give an answer", function() {
+        var answer;
+        answer = this.brain.giveAnswer;
+        expect(answer.toString()).toEqual(answer);
+        return expect(answer.length).toBeGreaterThan(1);
+      });
     });
   });
+
+  describe("The duck", function() {});
 
 }).call(this);
