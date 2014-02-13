@@ -115,6 +115,7 @@ footer a{
   background:#999;
   padding:8px;
   margin-bottom:8px;
+  border-radius:2px;
 }
 #duck p.answer{
   background:#bbb;
@@ -124,6 +125,7 @@ footer a{
 #duck input[type=text]{
   padding:7px;
   border: 1px solid #ccc;
+  border-radius:2px;
   width:100%;
   background:none;
   box-sizing:border-box;
