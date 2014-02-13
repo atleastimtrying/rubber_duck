@@ -5,7 +5,7 @@
 
   window.duck.App = (function() {
     function App() {
-      this.beak = new duck.Beak(this);
+      this.bill = new duck.Bill(this);
       this.brain = new duck.Brain(this);
     }
 
@@ -14,8 +14,19 @@
   })();
 
   $(function() {
-    return window.duck = new App;
+    return window.duck = new duck.App;
   });
+
+  duck.Bill = (function() {
+    function Bill(duck) {
+      this.duck = duck;
+      this.navigation = new window.duck.Navigation(this.duck);
+      this.success = new window.duck.Success(this.duck);
+    }
+
+    return Bill;
+
+  })();
 
   Conversation = (function() {
     function Conversation() {
