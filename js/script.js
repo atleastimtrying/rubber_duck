@@ -4,8 +4,8 @@
 
   window.duck.App = (function() {
     function App() {
-      this.navigation = new duck.Navigation(this);
-      this.success = new duck.Success(this);
+      this.beak = new duck.Beak(this);
+      this.brain = new duck.Brain(this);
     }
 
     return App;
