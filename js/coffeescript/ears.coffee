@@ -10,10 +10,18 @@ class duck.Ears
       click: @quack
     , '.current_submit'
 
+    $('#duck').on
+      click: @reset
+    , '.current_reset'
+
   check_key: (event)=>
     @quack() if event.keyCode is 13
-  
+
   quack: (event)=>
     event.preventDefault() if event
-    @duck.trigger 'quack', 
+    @duck.trigger 'quack',
       message: $('#duck .current').val()
+
+  reset: (event)=>
+    event.preventDefault() if event
+    @duck.trigger 'reset'
