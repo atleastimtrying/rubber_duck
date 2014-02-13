@@ -1,6 +1,6 @@
 class window.duck.App
   constructor: ->
-    @beak = new duck.Beak @
+    @bill = new duck.Bill @
     @brain = new duck.Brain @
 $ ->
-  window.duck = new App
+  window.duck = new duck.App
