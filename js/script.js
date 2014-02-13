@@ -14,7 +14,7 @@
   })();
 
   $(function() {
-    return window.duck = new duck.App;
+    return window.exposed_duck = new duck.App;
   });
 
   duck.Bill = (function() {
@@ -33,32 +33,74 @@
 
     function Brain(duck) {
       this.duck = duck;
+      this.state = new duck.FitnessStateMachine();
       $(this.duck).on('quack', this.quack);
     }
 
     Brain.prototype.quack = function(event, options) {
-      console.log(options.message);
-      return options.render("I'm sorry, Dave, I just don't know.");
+      return $(this.duck).trigger('response', {
+        next_question: 'Why?',
+        answer_type: 'short'
+      });
     };
 
     return Brain;
 
   })();
 
-  duck.Conversation = (function() {
+  duck.FitnessStateMachine = (function() {
 
-    function Conversation() {
-      this.conversation = [];
+    function FitnessStateMachine() {
+      this.visited_states = [];
+      this.current_state = null;
+      this.noun = null;
     }
 
-    Conversation.prototype.add = function(question, answer) {
-      return this.conversation.push({
-        question: question,
-        answer: answer
-      });
+    FitnessStateMachine.prototype.getNext = function(answer) {
+      var state, _i, _len, _ref;
+      this.answer = answer;
+      if (this.current_state) {
+        this.current_state.post_action();
+      }
+      _ref = this.states(this);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        state = _ref[_i];
+        if (state.qualifies()) {
+          this.current_state = state;
+          state.pre_action();
+          return state.question();
+        }
+      }
     };
 
-    return Conversation;
+    FitnessStateMachine.prototype.states = function(machine) {
+      return [
+        {
+          qualifies: function() {
+            return this.visited_states.length === 0;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Can you describe the problem in a paragraph? Please use small sentances, I'm only a duck.";
+          },
+          input: function() {
+            return 'short';
+          }
+        }, {
+          qualifies: function() {
+            return this.visited_states.length === 0;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Is " + machine.noun + " the thing that has the problem?";
+          }
+        }
+      ];
+    };
+
+    return FitnessStateMachine;
 
   })();
 
@@ -88,6 +130,74 @@
     };
 
     return Navigation;
+
+  })();
+
+  duck.PatternMatcher = (function() {
+
+    function PatternMatcher(str) {
+      this.str = str;
+    }
+
+    PatternMatcher.prototype.toString = function() {
+      return this.str;
+    };
+
+    PatternMatcher.prototype.toClauses = function() {
+      var clause, _i, _len, _ref, _results;
+      _ref = this.str.split(this.clauseBoundryRegex());
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        clause = _ref[_i];
+        _results.push(new duck.PatternMatcher(clause));
+      }
+      return _results;
+    };
+
+    PatternMatcher.prototype.toLikelyNouns = function() {
+      var found_nouns, match, noun, _i, _len, _ref;
+      found_nouns = [];
+      _ref = this.toClauses();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        match = _ref[_i];
+        noun = match.findNoun();
+        if (!this.discountNoun(noun)) {
+          found_nouns.push(noun);
+        }
+      }
+      console.log(found_nouns);
+      return found_nouns;
+    };
+
+    PatternMatcher.prototype.findNoun = function() {
+      var match;
+      match = this.str.match(this.nounMatcher());
+      if (match) {
+        return match[1];
+      }
+      return false;
+    };
+
+    PatternMatcher.prototype.clauseBoundryRegex = function() {
+      return /(?:\s*\.\s*| and | or | but | although | except (?:that))/;
+    };
+
+    PatternMatcher.prototype.nounMatcher = function() {
+      return /(?:(?:(.+)|it) is|i have a (.+)|my (.+)|this (?:(.+)|is ))/i;
+    };
+
+    PatternMatcher.prototype.discountNoun = function(noun) {
+      if (!noun) {
+        return true;
+      }
+      if (noun === '') {
+        return true;
+      }
+      console.log("looking at noun " + noun);
+      return noun === 'it' || noun === 'this' || noun === 'that' || noun === 'my app' || noun === 'this app';
+    };
+
+    return PatternMatcher;
 
   })();
 

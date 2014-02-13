@@ -8,5 +8,18 @@ describe "The Brain's Pattern Matcher", ->
       @matcher = new duck.PatternMatcher(text)
 
     it "can produce an array of sentance patterns", ->
-      sentances = @matcher.toSentances()
-      expect(sentances[0].toSentances).toBeDefined()
+      sentances = @matcher.toClauses()
+      expect(sentances[0].toClauses).toBeDefined()
+
+  describe "semantic analysis", ->
+    beforeEach ->
+      text = "My app is not working. I have a kickboxing champion and it is not picking up its thingammy"
+      @matcher = new duck.PatternMatcher(text)
+
+    it "should split the text into clauses", ->
+      expect(@matcher.toClauses().length).toEqual(3)
+
+
+    it "should find likely nouns from the clauses", ->
+      expect(@matcher.toLikelyNouns().length).toEqual(1)
+

@@ -33,13 +33,13 @@
 
     function Brain(duck) {
       this.duck = duck;
+      this.state = new duck.FitnessStateMachine();
       $(this.duck).on('quack', this.quack);
     }
 
     Brain.prototype.quack = function(event, options) {
-      console.log(options.message);
       return $(this.duck).trigger('response', {
-        next_question: 'Hello.',
+        next_question: 'Why?',
         answer_type: 'short'
       });
     };
@@ -48,20 +48,59 @@
 
   })();
 
-  duck.Conversation = (function() {
+  duck.FitnessStateMachine = (function() {
 
-    function Conversation() {
-      this.conversation = [];
+    function FitnessStateMachine() {
+      this.visited_states = [];
+      this.current_state = null;
+      this.noun = null;
     }
 
-    Conversation.prototype.add = function(question, answer) {
-      return this.conversation.push({
-        question: question,
-        answer: answer
-      });
+    FitnessStateMachine.prototype.getNext = function(answer) {
+      var state, _i, _len, _ref;
+      this.answer = answer;
+      if (this.current_state) {
+        this.current_state.post_action();
+      }
+      _ref = this.states(this);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        state = _ref[_i];
+        if (state.qualifies()) {
+          this.current_state = state;
+          state.pre_action();
+          return state.question();
+        }
+      }
     };
 
-    return Conversation;
+    FitnessStateMachine.prototype.states = function(machine) {
+      return [
+        {
+          qualifies: function() {
+            return this.visited_states.length === 0;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Can you describe the problem in a paragraph? Please use small sentances, I'm only a duck.";
+          },
+          input: function() {
+            return 'short';
+          }
+        }, {
+          qualifies: function() {
+            return this.visited_states.length === 0;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Is " + machine.noun + " the thing that has the problem?";
+          }
+        }
+      ];
+    };
+
+    return FitnessStateMachine;
 
   })();
 
@@ -104,14 +143,58 @@
       return this.str;
     };
 
-    PatternMatcher.prototype.toTokens = function() {
-      return this.str;
+    PatternMatcher.prototype.toClauses = function() {
+      var clause, _i, _len, _ref, _results;
+      _ref = this.str.split(this.clauseBoundryRegex());
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        clause = _ref[_i];
+        _results.push(new duck.PatternMatcher(clause));
+      }
+      return _results;
     };
 
-    PatternMatcher.prototype.toSentances = function() {
-      return $.map(this.str.split('.'), function() {
-        return new duck.PatternMatcher();
-      });
+    PatternMatcher.prototype.toLikelyNouns = function() {
+      var found_nouns, match, noun, _i, _len, _ref;
+      found_nouns = [];
+      _ref = this.toClauses();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        match = _ref[_i];
+        noun = match.findNoun();
+        if (!this.discountNoun(noun)) {
+          found_nouns.push(noun);
+        }
+      }
+      console.log(found_nouns);
+      return found_nouns;
+    };
+
+    PatternMatcher.prototype.findNoun = function() {
+      var match;
+      match = this.str.match(this.nounMatcher());
+      if (match) {
+        return match[1];
+      }
+      return false;
+    };
+
+    PatternMatcher.prototype.clauseBoundryRegex = function() {
+      return /(?:\s*\.\s*| and | or | but | although | except (?:that))/;
+    };
+
+    PatternMatcher.prototype.nounMatcher = function() {
+      return /(?:(?:(.+)|it) is|i have a (.+)|my (.+)|this (?:(.+)|is ))/i;
+    };
+
+    PatternMatcher.prototype.discountNoun = function(noun) {
+      if (!noun) {
+        return true;
+      }
+      if (noun === '') {
+        return true;
+      }
+      console.log("looking at noun " + noun);
+      return noun === 'it' || noun === 'this' || noun === 'that' || noun === 'my app' || noun === 'this app';
     };
 
     return PatternMatcher;
@@ -155,7 +238,7 @@
       });
       return it("can give an answer", function() {
         $(this.duck).on('response', function(event, response) {
-          return expect(response['next_question']).toEqual("Hello.");
+          return expect(response['next_question']).toEqual("Why?");
         });
         return this.brain.quack({}, {
           message: "Hi, ducky"
@@ -172,13 +255,21 @@
     });
   });
 
+  describe("The Brain's Fitness-Powered State Machine", function() {
+    return it("can be instantiated", function() {
+      return expect(function() {
+        return new duck.FitnessStateMachine();
+      }).not.toThrow();
+    });
+  });
+
   describe("The Brain's Pattern Matcher", function() {
     it("can be instantiated", function() {
       return expect(function() {
         return new duck.PatternMatcher("some text");
       }).not.toThrow();
     });
-    return describe("when given multiple sentances", function() {
+    describe("when given multiple sentances", function() {
       beforeEach(function() {
         var text;
         text = "I'm not a pheasant plucker, I'm a pheasant plucker's son. I'm only plucking pheasants til the pheasant plucker comes.";
@@ -186,8 +277,21 @@
       });
       return it("can produce an array of sentance patterns", function() {
         var sentances;
-        sentances = this.matcher.toSentances();
-        return expect(sentances[0].toSentances).toBeDefined();
+        sentances = this.matcher.toClauses();
+        return expect(sentances[0].toClauses).toBeDefined();
+      });
+    });
+    return describe("semantic analysis", function() {
+      beforeEach(function() {
+        var text;
+        text = "My app is not working. I have a kickboxing champion and it is not picking up its thingammy";
+        return this.matcher = new duck.PatternMatcher(text);
+      });
+      it("should split the text into clauses", function() {
+        return expect(this.matcher.toClauses().length).toEqual(3);
+      });
+      return it("should find likely nouns from the clauses", function() {
+        return expect(this.matcher.toLikelyNouns().length).toEqual(1);
       });
     });
   });
