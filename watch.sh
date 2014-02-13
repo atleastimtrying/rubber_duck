@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
 
-coffee -wc -j js/application.js coffeescript/app/*.coffee &
-coffee -wc -j js/tests.js coffeescript/tests/*.coffee
+export APP="coffeescript/app/*.coffee"
+export TESTS="coffeescript/tests/*.coffee"
+
+coffee -wc -j js/application.js $APP &
+coffee -wc -j js/tests.js $APP $TESTS

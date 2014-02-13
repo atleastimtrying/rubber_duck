@@ -1,7 +1,7 @@
-
-
 describe "The duck", ->
-  it "contains spec with an expectation", ->
-    expect(true).toBe false
+  it "can instantiate a duck", ->
+    expect ->
+      new Duck(->)
+    .not.toThrow()
 
 
