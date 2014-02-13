@@ -16,46 +16,6 @@
     return window.exposed_duck = new duck.App;
   });
 
-  duck.Bill = (function() {
-    function Bill(duck) {
-      this.duck = duck;
-      this.navigation = new window.duck.Navigation(this.duck);
-      this.success = new window.duck.Success(this.duck);
-      this.renderer = new window.duck.Renderer(this.duck);
-      this.ears = new window.duck.Ears(this.duck);
-    }
-
-    return Bill;
-
-  })();
-
-  duck.Brain = (function() {
-    function Brain(duck) {
-      this.duck = duck;
-      this.first_question = __bind(this.first_question, this);
-      this.quack = __bind(this.quack, this);
-      this.duck.on('quack', this.quack);
-      this.first_question();
-    }
-
-    Brain.prototype.quack = function(event, options) {
-      return this.duck.trigger('response', {
-        next_question: 'What?',
-        answer_type: 'short'
-      });
-    };
-
-    Brain.prototype.first_question = function() {
-      return this.duck.trigger('response', {
-        next_question: "Can you describe the problem in a paragraph? use small sentences please I'm only a duck.",
-        answer_type: 'long'
-      });
-    };
-
-    return Brain;
-
-  })();
-
   duck.Conversation = (function() {
     function Conversation() {
       this.conversation = [];
@@ -69,42 +29,6 @@
     };
 
     return Conversation;
-
-  })();
-
-  duck.Ears = (function() {
-    function Ears(duck) {
-      this.duck = duck;
-      this.quack = __bind(this.quack, this);
-      this.check_key = __bind(this.check_key, this);
-      this.bindUI();
-    }
-
-    Ears.prototype.bindUI = function() {
-      $('#duck').on({
-        keyup: this.check_key
-      }, '.current');
-      return $('#duck').on({
-        click: this.quack
-      }, '.current_submit');
-    };
-
-    Ears.prototype.check_key = function(event) {
-      if (event.keyCode === 13) {
-        return this.quack();
-      }
-    };
-
-    Ears.prototype.quack = function(event) {
-      if (event) {
-        event.preventDefault();
-      }
-      return this.duck.trigger('quack', {
-        message: $('#duck .current').val()
-      });
-    };
-
-    return Ears;
 
   })();
 
@@ -131,87 +55,6 @@
     };
 
     return Navigation;
-
-  })();
-
-  duck.PatternMatcher = (function() {
-    function PatternMatcher(str) {
-      this.str = str;
-    }
-
-    PatternMatcher.prototype.toString = function() {
-      return this.str;
-    };
-
-    PatternMatcher.prototype.toTokens = function() {
-      return this.str;
-    };
-
-    PatternMatcher.prototype.toSentances = function() {
-      return $.map(this.str.split('.'), function() {
-        return new duck.PatternMatcher();
-      });
-    };
-
-    return PatternMatcher;
-
-  })();
-
-  window.duck.Renderer = (function() {
-    function Renderer(duck) {
-      this.duck = duck;
-      this.strip_current = __bind(this.strip_current, this);
-      this.print_short = __bind(this.print_short, this);
-      this.print_long = __bind(this.print_long, this);
-      this.print_answer = __bind(this.print_answer, this);
-      this.print_question = __bind(this.print_question, this);
-      this.response = __bind(this.response, this);
-      this.container = $('#duck');
-      this.question_template = $('#template_question').html();
-      this.answer_template = $('#template_answer').html();
-      this.long_template = $('#template_long').html();
-      this.short_template = $('#template_short').html();
-      this.duck.on('response', this.response);
-    }
-
-    Renderer.prototype.response = function(event, options) {
-      this.strip_current();
-      this.print_question(options.next_question);
-      return this['print_' + options.answer_type]();
-    };
-
-    Renderer.prototype.print_question = function(text) {
-      return this.container.append(Mustache.render(this.question_template, {
-        question: text
-      }));
-    };
-
-    Renderer.prototype.print_answer = function(text) {
-      return this.container.append(Mustache.render(this.answer_template, {
-        answer: text
-      }));
-    };
-
-    Renderer.prototype.print_long = function() {
-      this.container.append(Mustache.render(this.long_template, {}));
-      return $('#duck .current').focus();
-    };
-
-    Renderer.prototype.print_short = function() {
-      this.container.append(Mustache.render(this.short_template, {}));
-      return $('#duck .current').focus();
-    };
-
-    Renderer.prototype.strip_current = function() {
-      var val;
-      val = $('#duck .current').val();
-      if (val) {
-        this.print_answer(val);
-      }
-      return $('#duck .current, #duck .current_submit').remove();
-    };
-
-    return Renderer;
 
   })();
 
