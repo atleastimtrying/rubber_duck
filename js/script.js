@@ -17,6 +17,34 @@
     return window.duck = new App;
   });
 
+  duck.Bill = (function() {
+
+    function Bill(duck) {
+      this.duck = duck;
+      this.navigation = new duck.Navigation(this.duck);
+      this.success = new duck.Success(this.duck);
+    }
+
+    return Bill;
+
+  })();
+
+  duck.Brain = (function() {
+
+    function Brain(duck) {
+      this.duck = duck;
+      $(this.duck).on('quack', this.quack);
+    }
+
+    Brain.prototype.quack = function(event, options) {
+      console.log(options.message);
+      return options.render("I'm sorry, Dave, I just don't know.");
+    };
+
+    return Brain;
+
+  })();
+
   duck.Conversation = (function() {
 
     function Conversation() {
@@ -80,7 +108,7 @@
 
     Success.prototype.done = function(event) {
       event.preventDefault();
-      return $('.congratulations').slideUp();
+      return $('.congratulations').slideDown();
     };
 
     return Success;

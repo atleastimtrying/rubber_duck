@@ -5,4 +5,4 @@ class window.duck.Success
     $('.done').click @done
   done: (event)=>
     event.preventDefault()
-    $('.congratulations').slideUp();
+    $('.congratulations').slideDown();
