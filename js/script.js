@@ -18,22 +18,11 @@
 
   duck.Bill = (function() {
     function Bill(duck) {
-      var _this = this;
       this.duck = duck;
       this.navigation = new window.duck.Navigation(this.duck);
       this.success = new window.duck.Success(this.duck);
       this.renderer = new window.duck.Renderer(this.duck);
       this.ears = new window.duck.Ears(this.duck);
-      this.duck.trigger('response', {
-        next_question: "Can you describe the problem in a paragraph? use small sentences please I'm only a duck.",
-        answer_type: 'long'
-      });
-      this.duck.on('quack', function(event, options) {
-        return _this.duck.trigger('response', {
-          next_question: 'Why?',
-          answer_type: 'short'
-        });
-      });
     }
 
     return Bill;
@@ -43,14 +32,23 @@
   duck.Brain = (function() {
     function Brain(duck) {
       this.duck = duck;
-      $(this.duck).on('quack', this.quack);
+      this.first_question = __bind(this.first_question, this);
+      this.quack = __bind(this.quack, this);
+      this.duck.on('quack', this.quack);
+      this.first_question();
     }
 
     Brain.prototype.quack = function(event, options) {
-      console.log(options.message);
-      return $(this.duck).trigger('response', {
-        next_question: 'Why?',
+      return this.duck.trigger('response', {
+        next_question: 'What?',
         answer_type: 'short'
+      });
+    };
+
+    Brain.prototype.first_question = function() {
+      return this.duck.trigger('response', {
+        next_question: "Can you describe the problem in a paragraph? use small sentences please I'm only a duck.",
+        answer_type: 'long'
       });
     };
 
@@ -83,9 +81,12 @@
     }
 
     Ears.prototype.bindUI = function() {
-      return $('#duck').on({
+      $('#duck').on({
         keyup: this.check_key
       }, '.current');
+      return $('#duck').on({
+        click: this.quack
+      }, '.current_submit');
     };
 
     Ears.prototype.check_key = function(event) {
@@ -94,7 +95,10 @@
       }
     };
 
-    Ears.prototype.quack = function() {
+    Ears.prototype.quack = function(event) {
+      if (event) {
+        event.preventDefault();
+      }
       return this.duck.trigger('quack', {
         message: $('#duck .current').val()
       });
@@ -204,7 +208,7 @@
       if (val) {
         this.print_answer(val);
       }
-      return $('#duck .current').remove();
+      return $('#duck .current, #duck .current_submit').remove();
     };
 
     return Renderer;
