@@ -1,5 +1,5 @@
 describe "The duck", ->
-  it "can instantiate a duck", ->
+  it "can be instantiated", ->
     expect ->
       new Duck(->)
     .not.toThrow()
