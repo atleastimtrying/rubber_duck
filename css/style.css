@@ -112,6 +112,10 @@ footer a{
   padding:8px;
   margin-bottom:8px;
 }
+#duck p.answer{
+  background:#bbb;
+  color:#333;
+}
 #duck textarea,
 #duck input[type=text]{
   padding:7px;
@@ -120,6 +124,7 @@ footer a{
   background:none;
   box-sizing:border-box;
   margin-bottom: 8px;
+  font-size:16px;
 }
 #duck textarea{
   min-height:128px;

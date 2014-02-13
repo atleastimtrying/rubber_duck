@@ -5,8 +5,8 @@
 
   window.duck.App = (function() {
     function App() {
-      this.bill = new duck.Bill(this);
-      this.brain = new duck.Brain(this);
+      this.bill = new duck.Bill($(this));
+      this.brain = new duck.Brain($(this));
     }
 
     return App;
@@ -14,7 +14,7 @@
   })();
 
   $(function() {
-    return window.duck = new duck.App;
+    return new duck.App;
   });
 
   duck.Bill = (function() {
@@ -22,6 +22,10 @@
       this.duck = duck;
       this.navigation = new window.duck.Navigation(this.duck);
       this.success = new window.duck.Success(this.duck);
+      this.renderer = new window.duck.Renderer(this.duck);
+      this.ears = new window.duck.Ears(this.duck);
+      this.duck.trigger('print_question', "Can you describe your problem in a paragraph? use small sentences please I'm only a duck");
+      this.duck.trigger('print_long');
     }
 
     return Bill;
@@ -44,6 +48,39 @@
 
   })();
 
+  duck.Ears = (function() {
+    function Ears(duck) {
+      this.duck = duck;
+      this.quack = __bind(this.quack, this);
+      this.check_key = __bind(this.check_key, this);
+      this.bindUI();
+    }
+
+    Ears.prototype.bindUI = function() {
+      return $('#duck').on({
+        keyup: this.check_key
+      }, '.current');
+    };
+
+    Ears.prototype.check_key = function(event) {
+      if (event.keyCode === 13) {
+        return this.quack();
+      }
+    };
+
+    Ears.prototype.quack = function() {
+      console.log('quack');
+      this.duck.trigger('answer', {
+        message: $('#duck .current').val(),
+        render: console.log
+      });
+      return this.duck.trigger('strip_current');
+    };
+
+    return Ears;
+
+  })();
+
   window.duck.Navigation = (function() {
     function Navigation(duck) {
       this.duck = duck;
@@ -63,7 +100,7 @@
       target = $(link.attr('href'));
       return $('html, body').animate({
         scrollTop: target.offset().top
-      }, 2000);
+      }, 500);
     };
 
     return Navigation;
@@ -82,6 +119,57 @@
     };
 
     return Brain;
+
+  })();
+
+  window.duck.Renderer = (function() {
+    function Renderer(duck) {
+      this.duck = duck;
+      this.strip_current = __bind(this.strip_current, this);
+      this.print_short = __bind(this.print_short, this);
+      this.print_long = __bind(this.print_long, this);
+      this.print_answer = __bind(this.print_answer, this);
+      this.print_question = __bind(this.print_question, this);
+      this.container = $('#duck');
+      this.question_template = $('#template_question').html();
+      this.answer_template = $('#template_answer').html();
+      this.long_template = $('#template_long').html();
+      this.short_template = $('#template_short').html();
+      this.duck.on('print_question', this.print_question);
+      this.duck.on('print_answer', this.print_answer);
+      this.duck.on('print_short', this.print_short);
+      this.duck.on('print_long', this.print_long);
+      this.duck.on('strip_current', this.strip_current);
+    }
+
+    Renderer.prototype.print_question = function(event, text) {
+      return this.container.append(Mustache.render(this.question_template, {
+        question: text
+      }));
+    };
+
+    Renderer.prototype.print_answer = function(event, text) {
+      return this.container.append(Mustache.render(this.answer_template, {
+        answer: text
+      }));
+    };
+
+    Renderer.prototype.print_long = function(event) {
+      return this.container.append(Mustache.render(this.long_template, {}));
+    };
+
+    Renderer.prototype.print_short = function(event, text) {
+      return this.container.append(Mustache.render(this.short_template, {}));
+    };
+
+    Renderer.prototype.strip_current = function() {
+      var val;
+      val = $('#duck .current').val();
+      this.print_answer('', val);
+      return $('#duck .current').remove();
+    };
+
+    return Renderer;
 
   })();
 

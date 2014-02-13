@@ -9,4 +9,4 @@ class window.duck.Navigation
     target = $ link.attr 'href'
     $('html, body').animate
         scrollTop: target.offset().top
-    , 2000
+    , 500
