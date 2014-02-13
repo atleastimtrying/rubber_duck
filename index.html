@@ -21,11 +21,43 @@
     <h2>Let's get ducking!</h2>
     <div id="duck">
     </div>
+    <p class="text-right">
+      <a href="#" class="done">Got it!</a>
+    </p>
   </section>
   <section>
     <h2>About</h2>
-    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    </p>
   </section>
+
+  <script type="text/html" id="template_question">
+    <p class="question">{{question}}</p>
+  </script>
+  
+  <script type="text/html" id="template_answer">
+    <p class="answer">{{answer}}</p>
+  </script>
+
+  <script type="text/html" id="template_long">
+    <textarea class="current"></textarea>
+  </script>
+
+  <script type="text/html" id="template_short">
+    <input type="text" class="current">
+  </script>
+
+  <script type="text/html" id="template_radios">
+    <div class="radios current">
+      <h3>{{title}}</h3>
+      {{#radios}}
+      <label for="test_red">
+        <input id="{{name}}_{{value}}" type="radio" name="{{name}}" value="{{value}}">
+        {{label}}
+      </label>
+      {{/radios}}
+    </div>
+  </script>
   <footer>Made by <a href="http://andersfisher.com">Anders Fisher</a>, <a href="http://blltd.eu">Matthew and Joey Bennett-Lovesey</a>.</footer>
 </body>
 </html>
