@@ -1,7 +1,8 @@
 describe "The Brain", ->
   it "can be instantiated", ->
+    new duck.Brain(->)
     expect ->
-      new duck.Brain()
+      new duck.Brain(->)
     .not.toThrow()
 
   describe "when processing text", ->
@@ -9,6 +10,8 @@ describe "The Brain", ->
       @brain = new duck.Brain()
 
     it "can give an answer", ->
-      answer = @brain.giveAnswer
-      expect(answer.toString()).toEqual(answer)
-      expect(answer.length).toBeGreaterThan(1)
+      @brain.quack {},
+        message: "Hi, ducky",
+        render: (answer)=>
+          expect(answer.toString()).toEqual(answer)
+          expect(answer.length).toBeGreaterThan(1)
