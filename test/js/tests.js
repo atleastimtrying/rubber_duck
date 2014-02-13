@@ -104,4 +104,31 @@
 
   })();
 
+  describe("The duck", function() {
+    return it("can be instantiated", function() {
+      return expect(function() {
+        return new Duck(function() {});
+      }).not.toThrow();
+    });
+  });
+
+  describe("The Processor", function() {
+    it("can be instantiated", function() {
+      return expect(function() {
+        return new Processor();
+      }).not.toThrow();
+    });
+    return describe("when processing text", function() {
+      beforeEach(function() {
+        return this.processor = new Processor();
+      });
+      return it("can give an answer", function() {
+        var answer;
+        answer = this.processor.giveAnswer;
+        expect(answer.toString()).toEqual(answer);
+        return expect(answer.length).toBeGreaterThan(1);
+      });
+    });
+  });
+
 }).call(this);

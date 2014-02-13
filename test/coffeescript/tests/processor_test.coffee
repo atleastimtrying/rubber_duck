@@ -8,7 +8,7 @@ describe "The Processor", ->
     beforeEach ->
       @processor = new Processor()
 
-    it "can give an answer"
+    it "can give an answer", ->
       answer = @processor.giveAnswer
       expect(answer.toString()).toEqual(answer)
       expect(answer.length).toBeGreaterThan(1)
