@@ -1,4 +1,4 @@
-class Conversation
+class duck.Conversation
   constructor: ->
     @conversation = []
 

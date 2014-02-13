@@ -1,7 +1,7 @@
 describe "The duck", ->
   it "can be instantiated", ->
     expect ->
-      new Duck(->)
+      new duck.App(->)
     .not.toThrow()
 
 
