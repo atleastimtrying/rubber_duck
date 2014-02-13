@@ -101,6 +101,116 @@
 
   })();
 
+  duck.FitnessStateMachine = (function() {
+    function FitnessStateMachine() {
+      this.visited_states = [];
+      this.current_state = null;
+      this.noun = null;
+    }
+
+    FitnessStateMachine.prototype.getNext = function(answer) {
+      var out, state, _i, _len, _ref;
+      this.answer = answer;
+      if (this.current_state) {
+        this.current_state.post_action();
+      }
+      _ref = this.states(this);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        state = _ref[_i];
+        if (state.qualifies()) {
+          this.current_state = state;
+          this.visited_states.push(state.name);
+          state.pre_action();
+          out = {
+            next_question: state.question(),
+            answer_type: state.answer_type()
+          };
+          return out;
+        }
+      }
+      return {
+        next_question: "Sorry, my super-duck-powers have failed. Have you tried google or stack overflow?",
+        answer_type: 'reset'
+      };
+    };
+
+    FitnessStateMachine.prototype.states = function(machine) {
+      return [
+        {
+          qualifies: function() {
+            return machine.visited_states.length === 0;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            var nouns, pattern;
+            pattern = new duck.PatternMatcher(machine.answer);
+            nouns = pattern.toLikelyNouns();
+            return machine.noun = nouns.sort(function(a, b) {
+              return a.length - b.length;
+            })[0];
+          },
+          question: function() {
+            return "Can you describe the problem in a paragraph? Please use small sentences, I'm only a duck.";
+          },
+          answer_type: function() {
+            return 'long';
+          }
+        }, {
+          qualifies: function() {
+            return machine.visited_states.length === 1 && machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            if (machine.answer.toLowerCase() === 'no') {
+              return machine.noun === null;
+            }
+          },
+          question: function() {
+            return "Is " + machine.noun + " the thing that has the problem?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          qualifies: function() {
+            return !machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            if (machine.answer && machine.answer.trim() !== '') {
+              return machine.noun = machine.answer;
+            }
+          },
+          question: function() {
+            return "What should I call the function / object / thing that is misbehaving?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'why',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Why do you need " + machine.noun + "?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }
+      ];
+    };
+
+    return FitnessStateMachine;
+
+  })();
+
   window.duck.Navigation = (function() {
     function Navigation(duck) {
       this.duck = duck;
