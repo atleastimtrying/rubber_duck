@@ -34,14 +34,14 @@
     function Brain(duck) {
       this.duck = duck;
       this.state = new duck.FitnessStateMachine();
+      this.quack({}, {});
       $(this.duck).on('quack', this.quack);
     }
 
     Brain.prototype.quack = function(event, options) {
-      return $(this.duck).trigger('response', {
-        next_question: 'Why?',
-        answer_type: 'short'
-      });
+      var state;
+      state = this.state.getNext(options.message);
+      return $(this.duck).trigger('response', state);
     };
 
     return Brain;
@@ -57,7 +57,7 @@
     }
 
     FitnessStateMachine.prototype.getNext = function(answer) {
-      var state, _i, _len, _ref;
+      var out, state, _i, _len, _ref;
       this.answer = answer;
       if (this.current_state) {
         this.current_state.post_action();
@@ -67,8 +67,13 @@
         state = _ref[_i];
         if (state.qualifies()) {
           this.current_state = state;
+          this.visited_states.push(state);
           state.pre_action();
-          return state.question();
+          out = {
+            next_question: state.question(),
+            answer_type: state.answer_type()
+          };
+          return out;
         }
       }
     };
@@ -80,21 +85,49 @@
             return this.visited_states.length === 0;
           },
           pre_action: function() {},
-          post_action: function() {},
-          question: function() {
-            return "Can you describe the problem in a paragraph? Please use small sentances, I'm only a duck.";
+          post_action: function() {
+            var nouns, pattern;
+            pattern = new duck.PatternMatcher(machine.answer);
+            nouns = pattern.toLikelyNouns();
+            return nouns.sort(function(a, b) {
+              return a.length - b.length;
+            })[0];
           },
-          input: function() {
+          question: function() {
+            return "Can you describe the problem in a paragraph? Please use small sentences, I'm only a duck.";
+          },
+          answer_type: function() {
+            return 'long';
+          }
+        }, {
+          qualifies: function() {
+            return this.visited_states.length === 1 && machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            if (answer.toLowerCase() === 'no') {
+              return machine.noun === null;
+            }
+          },
+          question: function() {
+            return "Is " + machine.noun + " the thing that has the problem?";
+          },
+          answer_type: function() {
             return 'short';
           }
         }, {
           qualifies: function() {
-            return this.visited_states.length === 0;
+            return this.visited_states.length === 0 && !machine.noun;
           },
           pre_action: function() {},
-          post_action: function() {},
+          post_action: function() {
+            return machine.noun;
+          },
           question: function() {
-            return "Is " + machine.noun + " the thing that has the problem?";
+            return "What should I call the function / object / thing that is misbehaving?";
+          },
+          answer_type: function() {
+            return 'short';
           }
         }
       ];

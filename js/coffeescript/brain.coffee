@@ -1,10 +1,10 @@
 class duck.Brain
   constructor: (@duck)->
     @state = new duck.FitnessStateMachine()
+    @quack({}, {})
     $(@duck).on 'quack', @quack
 
   quack: (event, options) ->
-    $(@duck).trigger 'response',
-      next_question: 'Why?'
-      answer_type: 'short'
+    state = @state.getNext options.message
+    $(@duck).trigger 'response', state
 
