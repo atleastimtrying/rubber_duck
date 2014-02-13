@@ -5,20 +5,22 @@ class window.duck.Renderer
     @answer_template = $('#template_answer').html()
     @long_template = $('#template_long').html()
     @short_template = $('#template_short').html()
-    @duck.on 'print_question', @print_question
-    @duck.on 'print_answer', @print_answer
-    @duck.on 'print_short', @print_short
-    @duck.on 'print_long', @print_long
-    @duck.on 'strip_current', @strip_current
-  print_question: (event, text)=>
+    @duck.on 'response', @response
+  response: (event, options)=>
+    @strip_current()
+    @print_question options.next_question
+    @['print_' + options.answer_type]()
+  print_question: (text)=>
     @container.append Mustache.render @question_template, question: text
-  print_answer: (event, text)=>
+  print_answer: (text)=>
     @container.append Mustache.render @answer_template, answer: text
-  print_long: (event)=>
+  print_long: =>
     @container.append Mustache.render @long_template, {}
-  print_short: (event, text)=>
+    $('#duck .current').focus()
+  print_short: =>
     @container.append Mustache.render @short_template, {}
+    $('#duck .current').focus()
   strip_current: =>
     val = $('#duck .current').val()
-    @print_answer '', val
+    @print_answer val if val
     $('#duck .current').remove()

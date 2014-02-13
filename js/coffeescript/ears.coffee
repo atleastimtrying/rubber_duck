@@ -9,8 +9,5 @@ class duck.Ears
     @quack() if event.keyCode is 13
   
   quack: =>
-    console.log 'quack'
-    @duck.trigger 'answer', 
-      message: $('#duck .current').val(),
-      render: console.log
-    @duck.trigger 'strip_current'
+    @duck.trigger 'quack', 
+      message: $('#duck .current').val()

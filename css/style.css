@@ -31,7 +31,7 @@ header{
 
 header h1{
   font-size:128px;
-  line-height: 120px
+  line-height: 32px
 }
 header h3{
   font-style: italic;
@@ -72,7 +72,10 @@ footer a{
   max-width:1000px;
   margin: 0 auto;
 }
-
+.wrapper img{
+  width:500px;
+  float:right;
+}
 .done{
   padding:16px;
   background:lightgreen;
