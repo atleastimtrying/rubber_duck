@@ -2,6 +2,7 @@ class duck.FitnessStateMachine
   constructor: ->
     @visited_states = []
     @current_state = null
+    @what_it_does = null
     @noun = null
 
   getNext: (@answer)->
@@ -53,15 +54,127 @@ class duck.FitnessStateMachine
         answer_type: -> 'short'
       },
       {
-        name: 'why'
+        name: 'what does it do?'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun
+        pre_action: ->
+        post_action: ->
+          machine.what_it_does = machine.answer
+        question: ->
+          "Can you explain what #{machine.noun} does?"
+        answer_type: -> 'long'
+      },
+      {
+        name: 'what it does sounds complicated'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun && machine.what_it_does.length > 100
+        pre_action: ->
+        post_action: ->
+        question: ->
+          "Wow, that sounds complicated. Any chance that #{machine.noun} can be broken into smaller parts that you could test seperately?"
+        answer_type: -> 'short'
+      },
+      {
+        name: 'what it does sounds reasonable'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun && machine.what_it_does.length <= 100 && machine.what_it_does.length > 30
+        pre_action: ->
+        post_action: ->
+        question: ->
+          "So does it do just one thing? Any chance that #{machine.noun}, or parts of it, can be isolated and test seperately?"
+        answer_type: -> 'short'
+      },
+      {
+        name: 'what it does sounds short'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun && machine.what_it_does.length <= 30
+        pre_action: ->
+        post_action: ->
+        question: ->
+          "Do you fully understand how it does what it does? Could you split #{machine.noun} into smaller chunks?"
+        answer_type: -> 'short'
+      },
+      {
+        name: 'what is known'
         qualifies: ->
           return false unless machine.visited_states.indexOf(@name) is -1
           machine.noun
         pre_action: ->
         post_action: ->
         question: ->
-          "Why do you need #{machine.noun}?"
+          "What parts of #{machine.noun} are you certain work, and where are your 'unknowns'?"
         answer_type: -> 'short'
+      },
+      {
+        name: 'is it compiling'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun
+        pre_action: ->
+        post_action: ->
+        question: ->
+          "Is #{machine.noun} being compiled? Can you restart the compiler?"
+        answer_type: -> 'short'
+      },
+      {
+        name: 'is it reusable'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun
+        pre_action: ->
+        post_action: ->
+        question: ->
+          "Is something similar to #{machine.noun} being used elsewhere? Could common elements be shared?"
+        answer_type: -> 'short'
+      },
+      {
+        name: 'how is it modified'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun
+        pre_action: ->
+        post_action: ->
+        question: ->
+          "How is #{machine.noun} modified?"
+        answer_type: -> 'short'
+      },
+      {
+        name: 'are vars overwritten'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun
+        pre_action: ->
+        post_action: ->
+        question: ->
+          "Could #{machine.noun}, or variables within it, be somehow overwritten or overridden?"
+        answer_type: -> 'short'
+      },
+      {
+        name: 'did you pack this bag yourself'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun
+        pre_action: ->
+        post_action: ->
+        question: ->
+          "Is everything in #{machine.noun} your code? Could you replace uncertainties with debugging statements?"
+        answer_type: -> 'short'
+      },
+      {
+        name: 'why do you need it'
+        qualifies: ->
+          return false unless machine.visited_states.indexOf(@name) is -1
+          machine.noun
+        pre_action: ->
+        post_action: ->
+          machine.what_it_does = machine.answer
+        question: ->
+          "Why do you need #{machine.noun}?"
+        answer_type: -> 'long'
       }
     ]
 
