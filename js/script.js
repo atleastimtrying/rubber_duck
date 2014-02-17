@@ -115,6 +115,7 @@
     function FitnessStateMachine() {
       this.visited_states = [];
       this.current_state = null;
+      this.what_it_does = null;
       this.noun = null;
     }
 
@@ -198,7 +199,73 @@
             return 'short';
           }
         }, {
-          name: 'why',
+          name: 'what does it do?',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            return machine.what_it_does = machine.answer;
+          },
+          question: function() {
+            return "Can you explain what " + machine.noun + " does?";
+          },
+          answer_type: function() {
+            return 'long';
+          }
+        }, {
+          name: 'what it does sounds complicated',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun && machine.what_it_does.length > 100;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Wow, that sounds complicated. Any chance that " + machine.noun + " can be broken into smaller parts that you could test seperately?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'what it does sounds reasonable',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun && machine.what_it_does.length <= 100 && machine.what_it_does.length > 30;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "So does it do just one thing? Any chance that " + machine.noun + ", or parts of it, can be isolated and test seperately?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'what it does sounds short',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun && machine.what_it_does.length <= 30;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Do you fully understand how it does what it does? Could you split " + machine.noun + " into smaller chunks?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'what is known',
           qualifies: function() {
             if (machine.visited_states.indexOf(this.name) !== -1) {
               return false;
@@ -208,10 +275,108 @@
           pre_action: function() {},
           post_action: function() {},
           question: function() {
-            return "Why do you need " + machine.noun + "?";
+            return "What parts of " + machine.noun + " are you certain work, and where are your 'unknowns'?";
           },
           answer_type: function() {
             return 'short';
+          }
+        }, {
+          name: 'is it compiling',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Is " + machine.noun + " being compiled? Can you restart the compiler?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'is it reusable',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Is something similar to " + machine.noun + " being used elsewhere? Could common elements be shared?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'how is it modified',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "How is " + machine.noun + " modified?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'are vars overwritten',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Could " + machine.noun + ", or variables within it, be somehow overwritten or overridden?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'did you pack this bag yourself',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {},
+          question: function() {
+            return "Is everything in " + machine.noun + " your code? Could you replace uncertainties with debugging statements?";
+          },
+          answer_type: function() {
+            return 'short';
+          }
+        }, {
+          name: 'why do you need it',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.noun;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            return machine.what_it_does = machine.answer;
+          },
+          question: function() {
+            return "Why do you need " + machine.noun + "?";
+          },
+          answer_type: function() {
+            return 'long';
           }
         }
       ];
@@ -278,29 +443,41 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         match = _ref[_i];
         noun = match.findNoun();
+        console.log("Noun found:", noun);
         if (!this.disqualifyNoun(noun)) {
           found_nouns.push(noun);
         }
       }
-      console.log(found_nouns);
       return found_nouns;
     };
 
     PatternMatcher.prototype.findNoun = function() {
       var match;
       match = this.str.match(this.nounMatcher());
-      if (match) {
-        return match[1];
+      if (match && match[1]) {
+        return this.invertOwner(match[1]);
       }
       return false;
     };
 
+    PatternMatcher.prototype.invertOwner = function(noun) {
+      return noun.replace(this.ownerRegex(), 'your ');
+    };
+
+    PatternMatcher.prototype.ownerRegex = function() {
+      return /(?: |^)(my|the|this|that|our) /i;
+    };
+
     PatternMatcher.prototype.clauseBoundryRegex = function() {
-      return /(?:\s*\.\s*| and | or | but | although | except (?:that))/;
+      return /(?:\. |- |, | and | or | but | although | except (?:that))/i;
     };
 
     PatternMatcher.prototype.nounMatcher = function() {
-      return /(?:this )?(?:(?:(.+)|it)(?: is| is| ain't| aint| does|'s)|i have a (.+)|my (.+))/i;
+      return /(?:its|it is|it's) (.+)|(?:this )?(?:(?:(.+)|it)(?: is| is| ain't| aint| does|'s| are| aren't)|i have a (.+)|my (.+))/i;
+    };
+
+    PatternMatcher.prototype.notNouns = function() {
+      return /^(it|this|that|(?:my|this|the) app(?:lication)?)$/i;
     };
 
     PatternMatcher.prototype.disqualifyNoun = function(noun) {
@@ -310,7 +487,7 @@
       if (noun === '') {
         return true;
       }
-      return noun === 'it' || noun === 'this' || noun === 'that' || noun === 'my app' || noun === 'this app';
+      return noun.match(this.notNouns());
     };
 
     return PatternMatcher;
