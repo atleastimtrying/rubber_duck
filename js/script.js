@@ -385,7 +385,7 @@
     }
 
     Navigation.prototype.bindUI = function() {
-      return $('nav a').click(this.go);
+      return $('nav a.anchor').click(this.go);
     };
 
     Navigation.prototype.go = function(event) {
@@ -562,6 +562,25 @@
     };
 
     return Success;
+
+  })();
+
+  duck.Trail = (function() {
+    function Trail(duck) {
+      this.duck = duck;
+      this.duck.on('quack', this.logQuack);
+      this.duck.on('success', this.logSuccess);
+    }
+
+    Trail.prototype.logQuack = function() {
+      return console.log('quack occurred, added to ga');
+    };
+
+    Trail.prototype.logSuccess = function() {
+      return console.log('success occurred, added to ga');
+    };
+
+    return Trail;
 
   })();
 
