@@ -2,7 +2,7 @@ class window.duck.Navigation
   constructor: (@duck)->
     @bindUI()
   bindUI: =>
-    $('nav a').click @go
+    $('nav a.anchor').click @go
   go: (event)=>
     event.preventDefault()
     link = $ event.currentTarget
