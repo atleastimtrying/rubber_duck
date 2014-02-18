@@ -23,7 +23,6 @@
       this.success = new window.duck.Success(this.duck);
       this.renderer = new window.duck.Renderer(this.duck);
       this.ears = new window.duck.Ears(this.duck);
-      this.trail = new window.duck.Trail(this.duck);
     }
 
     return Bill;
