@@ -89,22 +89,18 @@
     <input type="text" class="current">
     <a href="#" class="current_submit btn">ok</a>
   </script>
-
+  
+  <script type="text/html" id="template_nouns">
+    {{#nouns}}
+      <a href="#" class="current submit_noun btn" data-noun="{{.}}">{{.}}</a>
+    {{/nouns}}
+  </script>
+  
   <script type="text/html" id="template_reset">
     <a href="#" class="current_reset btn">try again</a>
   </script>
 
-  <script type="text/html" id="template_radios">
-    <div class="radios current">
-      <h3>{{title}}</h3>
-      {{#radios}}
-      <label for="test_red">
-        <input id="{{name}}_{{value}}" type="radio" name="{{name}}" value="{{value}}">
-        {{label}}
-      </label>
-      {{/radios}}
-    </div>
-  </script>
+  
   <footer>Made by <a href="http://andersfisher.com">Anders Fisher</a> and <a href="http://blltd.eu">Matt &amp; Jo Bennett-Lovesey</a>.</footer>
 </body>
 </html>

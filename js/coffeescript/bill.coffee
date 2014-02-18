@@ -4,4 +4,5 @@ class duck.Bill
     @success = new window.duck.Success @duck
     @renderer = new window.duck.Renderer @duck
     @ears = new window.duck.Ears @duck
+    @trail = new window.duck.Trail @duck
       

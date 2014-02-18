@@ -23,6 +23,7 @@
       this.success = new window.duck.Success(this.duck);
       this.renderer = new window.duck.Renderer(this.duck);
       this.ears = new window.duck.Ears(this.duck);
+      this.trail = new window.duck.Trail(this.duck);
     }
 
     return Bill;
@@ -59,6 +60,7 @@
       this.duck = duck;
       this.reset = __bind(this.reset, this);
       this.quack = __bind(this.quack, this);
+      this.submit_noun = __bind(this.submit_noun, this);
       this.check_key = __bind(this.check_key, this);
       this.bindUI();
     }
@@ -70,15 +72,27 @@
       $('#duck').on({
         click: this.quack
       }, '.current_submit');
-      return $('#duck').on({
+      $('#duck').on({
         click: this.reset
       }, '.current_reset');
+      return $('#duck').on({
+        click: this.submit_noun
+      }, '.submit_noun');
     };
 
     Ears.prototype.check_key = function(event) {
       if (event.keyCode === 13) {
         return this.quack();
       }
+    };
+
+    Ears.prototype.submit_noun = function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+      return this.duck.trigger('quack', {
+        message: $(event.currentTarget).data('noun')
+      });
     };
 
     Ears.prototype.quack = function(event) {
@@ -484,6 +498,7 @@
     function Renderer(duck) {
       this.duck = duck;
       this.strip_current = __bind(this.strip_current, this);
+      this.print_nouns = __bind(this.print_nouns, this);
       this.print_reset = __bind(this.print_reset, this);
       this.print_short = __bind(this.print_short, this);
       this.print_long = __bind(this.print_long, this);
@@ -496,13 +511,18 @@
       this.long_template = $('#template_long').html();
       this.short_template = $('#template_short').html();
       this.reset_template = $('#template_reset').html();
+      this.nouns_template = $('#template_nouns').html();
       this.duck.on('response', this.response);
     }
 
     Renderer.prototype.response = function(event, options) {
       this.strip_current();
-      this.print_question(options.next_question);
-      return this['print_' + options.answer_type]();
+      if (options.answer_type === 'nouns') {
+        return this['print_nouns'](options.next_question);
+      } else {
+        this.print_question(options.next_question);
+        return this['print_' + options.answer_type]();
+      }
     };
 
     Renderer.prototype.print_question = function(text) {
@@ -529,6 +549,12 @@
 
     Renderer.prototype.print_reset = function() {
       return this.container.append(Mustache.render(this.reset_template, {}));
+    };
+
+    Renderer.prototype.print_nouns = function(text) {
+      return this.container.append(Mustache.render(this.nouns_template, {
+        nouns: text.split(',')
+      }));
     };
 
     Renderer.prototype.strip_current = function() {
@@ -572,8 +598,8 @@
       this.duck.on('success', this.logSuccess);
     }
 
-    Trail.prototype.logQuack = function() {
-      return console.log('quack occurred, added to ga');
+    Trail.prototype.logQuack = function(event, quack) {
+      return console.log(quack, 'quack occurred, added to ga');
     };
 
     Trail.prototype.logSuccess = function() {
