@@ -4,9 +4,15 @@
 
   window.duck.App = (function() {
     function App() {
-      this.bill = new duck.Bill($(this));
-      this.brain = new duck.Brain($(this));
+      this.start = __bind(this.start, this);
+      meSpeak.loadConfig("voices/mespeak_config.json");
+      meSpeak.loadVoice("voices/en.json", this.start);
     }
+
+    App.prototype.start = function() {
+      this.bill = new duck.Bill($(this));
+      return this.brain = new duck.Brain($(this));
+    };
 
     return App;
 
@@ -19,6 +25,8 @@
   duck.Bill = (function() {
     function Bill(duck) {
       this.duck = duck;
+      this.listening = new window.duck.Listening(this.duck);
+      this.speaking = new window.duck.Speaking(this.duck);
       this.navigation = new window.duck.Navigation(this.duck);
       this.success = new window.duck.Success(this.duck);
       this.renderer = new window.duck.Renderer(this.duck);
@@ -389,6 +397,15 @@
 
   })();
 
+  window.duck.Listening = (function() {
+    function Listening(duck) {
+      this.duck = duck;
+    }
+
+    return Listening;
+
+  })();
+
   window.duck.Navigation = (function() {
     function Navigation(duck) {
       this.duck = duck;
@@ -566,6 +583,26 @@
     };
 
     return Renderer;
+
+  })();
+
+  window.duck.Speaking = (function() {
+    function Speaking(duck) {
+      this.duck = duck;
+      this.duck.on('response', this.speak_response);
+    }
+
+    Speaking.prototype.speak_response = function(event, options) {
+      return meSpeak.speak(options.next_question, {
+        amplitude: 100,
+        wordgap: 3,
+        pitch: 50,
+        speed: 175,
+        variant: 'f4'
+      });
+    };
+
+    return Speaking;
 
   })();
 
