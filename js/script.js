@@ -26,7 +26,6 @@
     function Bill(duck) {
       this.duck = duck;
       this.listening = new window.duck.Listening(this.duck);
-      this.speaking = new window.duck.Speaking(this.duck);
       this.navigation = new window.duck.Navigation(this.duck);
       this.success = new window.duck.Success(this.duck);
       this.renderer = new window.duck.Renderer(this.duck);
@@ -400,7 +399,83 @@
   window.duck.Listening = (function() {
     function Listening(duck) {
       this.duck = duck;
+      this.end = __bind(this.end, this);
+      this.result = __bind(this.result, this);
+      this.error = __bind(this.error, this);
+      this.start = __bind(this.start, this);
+      this.bind_recognition = __bind(this.bind_recognition, this);
+      this.stop = __bind(this.stop, this);
+      this.begin = __bind(this.begin, this);
+      this.recognition = this.setup_recognition();
+      this.recording = false;
+      this.bind_recognition();
+      this.final_transcript = "";
+      this.duck.on('response', this.begin);
+      $('#duck').on({
+        'click': this.stop
+      }, '.current_submit');
     }
+
+    Listening.prototype.setup_recognition = function() {
+      var r;
+      r = new webkitSpeechRecognition();
+      r.continuous = true;
+      r.interimResults = true;
+      r.lang = 'en-GB';
+      return r;
+    };
+
+    Listening.prototype.begin = function() {
+      if (this.recording) {
+        this.recognition.stop();
+      }
+      this.recognition.start();
+      return this.recording = true;
+    };
+
+    Listening.prototype.stop = function() {
+      return this.recognition.stop();
+    };
+
+    Listening.prototype.bind_recognition = function() {
+      return $(this.recognition).on({
+        start: this.start,
+        error: this.error,
+        result: this.result,
+        end: this.end
+      });
+    };
+
+    Listening.prototype.start = function() {
+      return console.log('started');
+    };
+
+    Listening.prototype.error = function(event) {
+      console.log(event);
+      return this.stop();
+    };
+
+    Listening.prototype.result = function(event) {
+      var result, _i, _len, _ref;
+      if (typeof event.originalEvent.results === 'undefined') {
+        this.stop();
+      } else {
+        _ref = event.originalEvent.results;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          result = _ref[_i];
+          if (result.isFinal) {
+            this.final_transcript += result[0].transcript;
+          }
+        }
+      }
+      return $('.current').val(this.final_transcript);
+    };
+
+    Listening.prototype.end = function() {
+      console.log('ended');
+      this.final_transcript = "";
+      return this.recording = false;
+    };
 
     return Listening;
 
