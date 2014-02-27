@@ -15,6 +15,7 @@ class window.duck.Renderer
     else
       @print_question options.next_question
       @['print_' + options.answer_type]()
+    @duck.trigger 'start_recording'
   print_question: (text)=>
     @container.append Mustache.render @question_template, question: text
   print_answer: (text)=>

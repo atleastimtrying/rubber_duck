@@ -25,7 +25,7 @@
   duck.Bill = (function() {
     function Bill(duck) {
       this.duck = duck;
-      this.listening = new window.duck.Listening(this.duck);
+      this.speaking = new window.duck.Speaking(this.duck);
       this.navigation = new window.duck.Navigation(this.duck);
       this.success = new window.duck.Success(this.duck);
       this.renderer = new window.duck.Renderer(this.duck);
@@ -105,9 +105,10 @@
       if (event) {
         event.preventDefault();
       }
-      return this.duck.trigger('quack', {
+      this.duck.trigger('quack', {
         message: $('#duck .current').val()
       });
+      return this.duck.trigger('end_recording');
     };
 
     Ears.prototype.reset = function(event) {
@@ -407,13 +408,11 @@
       this.stop = __bind(this.stop, this);
       this.begin = __bind(this.begin, this);
       this.recognition = this.setup_recognition();
-      this.recording = false;
       this.bind_recognition();
+      this.recording = false;
       this.final_transcript = "";
-      this.duck.on('response', this.begin);
-      $('#duck').on({
-        'click': this.stop
-      }, '.current_submit');
+      this.duck.on('start_recording', this.begin);
+      this.duck.on('end_recording', this.stop);
     }
 
     Listening.prototype.setup_recognition = function() {
@@ -428,13 +427,16 @@
     Listening.prototype.begin = function() {
       if (this.recording) {
         this.recognition.stop();
+        return this.recognition.start();
+      } else {
+        return this.recognition.start();
       }
-      this.recognition.start();
-      return this.recording = true;
     };
 
     Listening.prototype.stop = function() {
-      return this.recognition.stop();
+      if (this.recording) {
+        return this.recognition.stop();
+      }
     };
 
     Listening.prototype.bind_recognition = function() {
@@ -447,7 +449,8 @@
     };
 
     Listening.prototype.start = function() {
-      return console.log('started');
+      console.log('started');
+      return this.recording = true;
     };
 
     Listening.prototype.error = function(event) {
@@ -473,8 +476,8 @@
 
     Listening.prototype.end = function() {
       console.log('ended');
-      this.final_transcript = "";
-      return this.recording = false;
+      this.recording = false;
+      return this.final_transcript = "";
     };
 
     return Listening;
@@ -609,11 +612,12 @@
     Renderer.prototype.response = function(event, options) {
       this.strip_current();
       if (options.answer_type === 'nouns') {
-        return this['print_nouns'](options.next_question);
+        this['print_nouns'](options.next_question);
       } else {
         this.print_question(options.next_question);
-        return this['print_' + options.answer_type]();
+        this['print_' + options.answer_type]();
       }
+      return this.duck.trigger('start_recording');
     };
 
     Renderer.prototype.print_question = function(text) {
@@ -669,11 +673,11 @@
 
     Speaking.prototype.speak_response = function(event, options) {
       return meSpeak.speak(options.next_question, {
-        amplitude: 100,
-        wordgap: 3,
-        pitch: 50,
-        speed: 175,
-        variant: 'f4'
+        amplitude: 50,
+        wordgap: 2,
+        pitch: 60,
+        speed: 130,
+        variant: 'm4'
       });
     };
 

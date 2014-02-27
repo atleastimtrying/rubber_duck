@@ -7,7 +7,7 @@ describe "The Brain's Pattern Matcher", ->
       text = "I'm not a pheasant plucker, I'm a pheasant plucker's son. I'm only plucking pheasants til the pheasant plucker comes."
       @matcher = new duck.PatternMatcher(text)
 
-    it "can produce an array of sentance patterns", ->
+    it "can produce an array of sentence patterns", ->
       sentances = @matcher.toClauses()
       expect(sentances[0].toClauses).toBeDefined()
 

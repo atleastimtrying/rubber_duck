@@ -1,14 +1,11 @@
 class window.duck.Listening
   constructor: (@duck)->
     @recognition = @setup_recognition()
-    @recording = false
     @bind_recognition()
-
+    @recording = false
     @final_transcript = ""
-    @duck.on 'response', @begin
-    $('#duck').on 
-      'click': @stop
-    , '.current_submit'
+    @duck.on 'start_recording', @begin
+    @duck.on 'end_recording', @stop
 
   setup_recognition: ->
     r = new webkitSpeechRecognition()
@@ -18,12 +15,14 @@ class window.duck.Listening
     r
 
   begin: =>
-    @recognition.stop() if @recording
-    @recognition.start()
-    @recording = true
+    if @recording
+      @recognition.stop()
+      @recognition.start() 
+    else
+      @recognition.start()
 
   stop: =>
-    @recognition.stop()
+    @recognition.stop() if @recording
 
   bind_recognition: =>
     $(@recognition).on
@@ -34,6 +33,7 @@ class window.duck.Listening
 
   start: =>
     console.log 'started'
+    @recording = true
 
   error: (event)=>
     console.log event
@@ -50,5 +50,5 @@ class window.duck.Listening
 
   end: =>
     console.log 'ended'
-    @final_transcript = ""
     @recording = false
+    @final_transcript = ""

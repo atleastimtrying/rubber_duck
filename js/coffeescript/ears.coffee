@@ -30,6 +30,7 @@ class duck.Ears
     event.preventDefault() if event
     @duck.trigger 'quack',
       message: $('#duck .current').val()
+    @duck.trigger 'end_recording'
 
   reset: (event)=>
     event.preventDefault() if event
