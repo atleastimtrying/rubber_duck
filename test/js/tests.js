@@ -67,6 +67,8 @@
 
       this.quack = __bind(this.quack, this);
 
+      this.submit_choice = __bind(this.submit_choice, this);
+
       this.check_key = __bind(this.check_key, this);
 
       this.bindUI();
@@ -79,15 +81,27 @@
       $('#duck').on({
         click: this.quack
       }, '.current_submit');
-      return $('#duck').on({
+      $('#duck').on({
         click: this.reset
       }, '.current_reset');
+      return $('#duck').on({
+        click: this.submit_choice
+      }, '.submit_choice');
     };
 
     Ears.prototype.check_key = function(event) {
       if (event.keyCode === 13) {
         return this.quack();
       }
+    };
+
+    Ears.prototype.submit_choice = function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+      return this.duck.trigger('quack', {
+        message: $(event.currentTarget).data('choice')
+      });
     };
 
     Ears.prototype.quack = function(event) {
@@ -116,6 +130,7 @@
       this.visited_states = [];
       this.current_state = null;
       this.what_it_does = null;
+      this.potential_nouns = [];
       this.noun = null;
     }
 
@@ -134,7 +149,8 @@
           state.pre_action();
           out = {
             next_question: state.question(),
-            answer_type: state.answer_type()
+            answer_type: state.answer_type,
+            options: state.options
           };
           return out;
         }
@@ -153,34 +169,61 @@
           },
           pre_action: function() {},
           post_action: function() {
-            var nouns, pattern;
+            var pattern;
             pattern = new duck.PatternMatcher(machine.answer);
-            nouns = pattern.toLikelyNouns();
-            return machine.noun = nouns.sort(function(a, b) {
-              return a.length - b.length;
-            })[0];
+            return machine.potential_nouns = pattern.toLikelyNouns();
           },
           question: function() {
             return "Can you describe the problem in a paragraph? Please use small sentences, I'm only a duck.";
           },
-          answer_type: function() {
-            return 'long';
-          }
+          answer_type: 'long'
         }, {
+          name: 'is it this one?',
           qualifies: function() {
-            return machine.visited_states.length === 1 && machine.noun;
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            return machine.potential_nouns.length === 1;
           },
-          pre_action: function() {},
+          pre_action: function() {
+            return machine.noun = machine.potential_nouns[0];
+          },
           post_action: function() {
-            if (machine.answer.toLowerCase() === 'no') {
-              return machine.noun === null;
+            if (machine.answer === 'no') {
+              return machine.noun = null;
             }
           },
           question: function() {
             return "Is " + machine.noun + " the thing that has the problem?";
           },
-          answer_type: function() {
-            return 'short';
+          answer_type: 'choice',
+          options: function() {
+            return ['yes', 'no'];
+          }
+        }, {
+          name: 'name your noun',
+          qualifies: function() {
+            if (machine.visited_states.indexOf(this.name) !== -1) {
+              return false;
+            }
+            machine.visited_states.length === 1 && machine.noun;
+            return machine.potential_nouns.length > 1;
+          },
+          pre_action: function() {},
+          post_action: function() {
+            machine.noun = machine.answer;
+            if (machine.noun === 'none of the above') {
+              return machine.noun = null;
+            }
+          },
+          question: function() {
+            return "Is the problematic object one of these?";
+          },
+          answer_type: 'choice',
+          options: function() {
+            return machine.potential_nouns.sort(function(a, b) {
+              return a.length - b.length;
+            }).concat('none of the above');
           }
         }, {
           qualifies: function() {
@@ -195,9 +238,7 @@
           question: function() {
             return "What should I call the function / object / thing that is misbehaving?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'what does it do?',
           qualifies: function() {
@@ -213,9 +254,7 @@
           question: function() {
             return "Can you explain what " + machine.noun + " does?";
           },
-          answer_type: function() {
-            return 'long';
-          }
+          answer_type: 'long'
         }, {
           name: 'what it does sounds complicated',
           qualifies: function() {
@@ -229,9 +268,7 @@
           question: function() {
             return "Wow, that sounds complicated. Any chance that " + machine.noun + " can be broken into smaller parts that you could test seperately?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'what it does sounds reasonable',
           qualifies: function() {
@@ -245,9 +282,7 @@
           question: function() {
             return "So does it do just one thing? Any chance that " + machine.noun + ", or parts of it, can be isolated and test seperately?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'what it does sounds short',
           qualifies: function() {
@@ -261,9 +296,7 @@
           question: function() {
             return "Do you fully understand how it does what it does? Could you split " + machine.noun + " into smaller chunks?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'what is known',
           qualifies: function() {
@@ -277,9 +310,7 @@
           question: function() {
             return "What parts of " + machine.noun + " are you certain work, and where are your 'unknowns'?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'is it compiling',
           qualifies: function() {
@@ -293,9 +324,7 @@
           question: function() {
             return "Is " + machine.noun + " being compiled? Can you restart the compiler?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'is it reusable',
           qualifies: function() {
@@ -309,9 +338,7 @@
           question: function() {
             return "Is something similar to " + machine.noun + " being used elsewhere? Could common elements be shared?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'how is it modified',
           qualifies: function() {
@@ -325,9 +352,7 @@
           question: function() {
             return "How is " + machine.noun + " modified?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'are vars overwritten',
           qualifies: function() {
@@ -341,9 +366,7 @@
           question: function() {
             return "Could " + machine.noun + ", or variables within it, be somehow overwritten or overridden?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'did you pack this bag yourself',
           qualifies: function() {
@@ -357,9 +380,7 @@
           question: function() {
             return "Is everything in " + machine.noun + " your code? Could you replace uncertainties with debugging statements?";
           },
-          answer_type: function() {
-            return 'short';
-          }
+          answer_type: 'short'
         }, {
           name: 'why do you need it',
           qualifies: function() {
@@ -375,9 +396,7 @@
           question: function() {
             return "Why do you need " + machine.noun + "?";
           },
-          answer_type: function() {
-            return 'long';
-          }
+          answer_type: 'long'
         }
       ];
     };
@@ -398,7 +417,7 @@
     }
 
     Navigation.prototype.bindUI = function() {
-      return $('nav a').click(this.go);
+      return $('nav a.anchor').click(this.go);
     };
 
     Navigation.prototype.go = function(event) {
@@ -443,7 +462,6 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         match = _ref[_i];
         noun = match.findNoun();
-        console.log("Noun found:", noun);
         if (!this.disqualifyNoun(noun)) {
           found_nouns.push(noun);
         }
@@ -453,7 +471,7 @@
 
     PatternMatcher.prototype.findNoun = function() {
       var match;
-      match = this.str.match(this.nounMatcher());
+      match = this.str.match(this.ownedItemRegex());
       if (match && match[1]) {
         return this.invertOwner(match[1]);
       }
@@ -465,15 +483,15 @@
     };
 
     PatternMatcher.prototype.ownerRegex = function() {
-      return /(?: |^)(my|the|this|that|our) /i;
+      return /(?: |^)(my|the|this|that|our|a|an) /i;
+    };
+
+    PatternMatcher.prototype.ownedItemRegex = function() {
+      return /(?: |^)((?:my|the|this|that|our|a|an) .+)/i;
     };
 
     PatternMatcher.prototype.clauseBoundryRegex = function() {
-      return /(?:\. |- |, | and | or | but | although | except (?:that))/i;
-    };
-
-    PatternMatcher.prototype.nounMatcher = function() {
-      return /(?:its|it is|it's) (.+)|(?:this )?(?:(?:(.+)|it)(?: is| is| ain't| aint| does|'s| are| aren't)|i have a (.+)|my (.+))/i;
+      return /(?:\. |- |, | and | or | but | which | that | although | except | with | is | isn'?t | ain'?t | will | won'?t | can | can'?t | does | doesn'?t | are | aren'?t)/i;
     };
 
     PatternMatcher.prototype.notNouns = function() {
@@ -500,6 +518,8 @@
       this.duck = duck;
       this.strip_current = __bind(this.strip_current, this);
 
+      this.print_choice = __bind(this.print_choice, this);
+
       this.print_reset = __bind(this.print_reset, this);
 
       this.print_short = __bind(this.print_short, this);
@@ -518,13 +538,19 @@
       this.long_template = $('#template_long').html();
       this.short_template = $('#template_short').html();
       this.reset_template = $('#template_reset').html();
+      this.choice_template = $('#template_choices').html();
       this.duck.on('response', this.response);
     }
 
     Renderer.prototype.response = function(event, options) {
       this.strip_current();
-      this.print_question(options.next_question);
-      return this['print_' + options.answer_type]();
+      if (options.answer_type === 'choice') {
+        this.print_question(options.next_question);
+        return this['print_choice'](options.options());
+      } else {
+        this.print_question(options.next_question);
+        return this['print_' + options.answer_type]();
+      }
     };
 
     Renderer.prototype.print_question = function(text) {
@@ -551,6 +577,12 @@
 
     Renderer.prototype.print_reset = function() {
       return this.container.append(Mustache.render(this.reset_template, {}));
+    };
+
+    Renderer.prototype.print_choice = function(arr) {
+      return this.container.append(Mustache.render(this.choice_template, {
+        choices: arr
+      }));
     };
 
     Renderer.prototype.strip_current = function() {
@@ -590,6 +622,26 @@
 
   })();
 
+  duck.Trail = (function() {
+
+    function Trail(duck) {
+      this.duck = duck;
+      this.duck.on('quack', this.logQuack);
+      this.duck.on('success', this.logSuccess);
+    }
+
+    Trail.prototype.logQuack = function(event, quack) {
+      return console.log(quack, 'quack occurred, added to ga');
+    };
+
+    Trail.prototype.logSuccess = function() {
+      return console.log('success occurred, added to ga');
+    };
+
+    return Trail;
+
+  })();
+
   describe("The Brain", function() {
     it("can be instantiated", function() {
       return expect(function() {
@@ -603,7 +655,7 @@
       });
       return it("can give an answer", function() {
         $(this.duck).on('response', function(event, response) {
-          return expect(response['next_question']).toEqual("Why?");
+          return expect(response['next_question']).toBeDefined();
         });
         return this.brain.quack({}, {
           message: "Hi, ducky"
@@ -646,18 +698,33 @@
         return expect(sentances[0].toClauses).toBeDefined();
       });
     });
-    return describe("semantic analysis", function() {
+    describe("semantic analysis", function() {
       beforeEach(function() {
         var text;
         text = "My app is not working. I have a kickboxing champion and it is not picking up its thingammy";
         return this.matcher = new duck.PatternMatcher(text);
       });
-      it("should split the text into clauses", function() {
-        return expect(this.matcher.toClauses().length).toEqual(3);
+      return it("should split the text into clauses", function() {
+        Array.prototype.isArray = true;
+        return expect(this.matcher.toClauses().isArray).toBe(true);
       });
-      return it("should find likely nouns from the clauses", function() {
-        return expect(this.matcher.toLikelyNouns().length).toEqual(1);
-      });
+    });
+    return describe("when finding nouns", function() {
+      var text, _i, _len, _ref, _results;
+      this.texts = ["I have a problem with my ducky. It just doesn't work.", "My ducky doesn't work.", "This ducky wont work", "This ducky won't play ball.", "Please help me with my ducky", "I have a ducky that keeps lying to me", "Our ducky is buggering up", "If I try to do anything funky, the ducky will balls it up"];
+      _ref = this.texts;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        text = _ref[_i];
+        _results.push(it("should find and invert appropriate nouns in '" + text + "'", (function(text) {
+          return function() {
+            var matcher;
+            matcher = new duck.PatternMatcher(text);
+            return expect(matcher.toLikelyNouns()).toContain("your ducky");
+          };
+        })(text)));
+      }
+      return _results;
     });
   });
 

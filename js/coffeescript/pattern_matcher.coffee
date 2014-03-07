@@ -11,12 +11,11 @@ class duck.PatternMatcher
     found_nouns = []
     for match in @toClauses()
       noun = match.findNoun()
-      console.log "Noun found:", noun
       found_nouns.push(noun) unless @disqualifyNoun(noun)
     found_nouns
 
   findNoun: ->
-    match = @str.match(@nounMatcher())
+    match = @str.match(@ownedItemRegex())
     return @invertOwner(match[1]) if match && match[1]
     false
 
@@ -24,13 +23,14 @@ class duck.PatternMatcher
     noun.replace(@ownerRegex(), 'your ')
 
   ownerRegex: ->
-    /(?: |^)(my|the|this|that|our) /i
+    /(?: |^)(my|the|this|that|our|a|an) /i
+
+  ownedItemRegex: ->
+    /(?: |^)((?:my|the|this|that|our|a|an) .+)/i
 
   clauseBoundryRegex: ->
-    /(?:\. |- |, | and | or | but | although | except (?:that))/i
-
-  nounMatcher: ->
-    /(?:its|it is|it's) (.+)|(?:this )?(?:(?:(.+)|it)(?: is| is| ain't| aint| does|'s| are| aren't)|i have a (.+)|my (.+))/i
+    # /(?:\. |- |, | and | or | but | although | except (?:that))/i
+    /(?:\. |- |, | and | or | but | which | that | although | except | with | is | isn'?t | ain'?t | will | won'?t | can | can'?t | does | doesn'?t | are | aren'?t)/i
 
   notNouns: ->
     /^(it|this|that|(?:my|this|the) app(?:lication)?)$/i

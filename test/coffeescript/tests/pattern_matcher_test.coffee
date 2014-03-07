@@ -17,9 +17,24 @@ describe "The Brain's Pattern Matcher", ->
       @matcher = new duck.PatternMatcher(text)
 
     it "should split the text into clauses", ->
-      expect(@matcher.toClauses().length).toEqual(3)
+      Array.prototype.isArray = true
+      expect(@matcher.toClauses().isArray).toBe(true)
 
+  describe "when finding nouns", ->
+    @texts = [
+      "I have a problem with my ducky. It just doesn't work.",
+      "My ducky doesn't work.",
+      "This ducky wont work",
+      "This ducky won't play ball.",
+      "Please help me with my ducky",
+      "I have a ducky that keeps lying to me",
+      "Our ducky is buggering up",
+      "If I try to do anything funky, the ducky will balls it up"
+    ]
 
-    it "should find likely nouns from the clauses", ->
-      expect(@matcher.toLikelyNouns().length).toEqual(1)
-
+    for text in @texts
+      it "should find and invert appropriate nouns in '#{text}'", ((text)->
+        ->
+          matcher = new duck.PatternMatcher(text)
+          expect(matcher.toLikelyNouns()).toContain "your ducky"
+      )(text) # force a pass-by-value rather than by reference

@@ -4,9 +4,9 @@
   <link rel="stylesheet" href="css/style.css">
   <link href="http://fonts.googleapis.com/css?family=Open+Sans:300" rel="stylesheet" type="text/css">
   <!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>-->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-touch-fullscreen" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes"> 
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="description" content="Duckie.me is a free rubber ducking tool that will help you solve your programming mental blocks.">
   <meta property="og:image" content="http://duckie.me/images/rubberduck64.png">
@@ -89,18 +89,18 @@
     <input type="text" class="current">
     <a href="#" class="current_submit btn">ok</a>
   </script>
-  
-  <script type="text/html" id="template_nouns">
-    {{#nouns}}
-      <a href="#" class="current submit_noun btn" data-noun="{{.}}">{{.}}</a>
-    {{/nouns}}
+
+  <script type="text/html" id="template_choices">
+    {{#choices}}
+      <a href="#" class="current submit_choice btn" data-choice="{{.}}">{{.}}</a>
+    {{/choices}}
   </script>
-  
+
   <script type="text/html" id="template_reset">
     <a href="#" class="current_reset btn">try again</a>
   </script>
 
-  
+
   <footer>Made by <a href="http://andersfisher.com">Anders Fisher</a> and <a href="http://blltd.eu">Matt &amp; Jo Bennett-Lovesey</a>.</footer>
 </body>
 </html>

@@ -6,12 +6,13 @@ class window.duck.Renderer
     @long_template = $('#template_long').html()
     @short_template = $('#template_short').html()
     @reset_template = $('#template_reset').html()
-    @nouns_template = $('#template_nouns').html()
+    @choice_template = $('#template_choices').html()
     @duck.on 'response', @response
   response: (event, options)=>
     @strip_current()
-    if options.answer_type is 'nouns'
-      @['print_nouns'] options.next_question
+    if options.answer_type is 'choice'
+      @print_question options.next_question
+      @['print_choice'] options.options()
     else
       @print_question options.next_question
       @['print_' + options.answer_type]()
@@ -27,8 +28,8 @@ class window.duck.Renderer
     $('#duck .current').focus()
   print_reset: =>
     @container.append Mustache.render @reset_template, {}
-  print_nouns: (text)=>
-    @container.append Mustache.render @nouns_template, nouns: text.split ','
+  print_choice: (arr)=>
+    @container.append Mustache.render @choice_template, choices: arr
   strip_current: =>
     val = $('#duck .current').val()
     @print_answer val if val

@@ -15,16 +15,16 @@ class duck.Ears
     , '.current_reset'
 
     $('#duck').on
-      click: @submit_noun
-    , '.submit_noun'
+      click: @submit_choice
+    , '.submit_choice'
 
   check_key: (event)=>
     @quack() if event.keyCode is 13
 
-  submit_noun: (event)=>
+  submit_choice: (event)=>
     event.preventDefault() if event
     @duck.trigger 'quack',
-      message: $(event.currentTarget).data('noun')
+      message: $(event.currentTarget).data('choice')
 
   quack: (event)=>
     event.preventDefault() if event

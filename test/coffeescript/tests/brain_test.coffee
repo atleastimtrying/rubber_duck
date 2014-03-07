@@ -11,7 +11,7 @@ describe "The Brain", ->
 
     it "can give an answer", ->
       $(@duck).on 'response', (event, response)->
-        expect(response['next_question']).toEqual("Why?")
+        expect(response['next_question']).toBeDefined()
 
       @brain.quack {},
         message: "Hi, ducky"
