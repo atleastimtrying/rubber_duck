@@ -7,7 +7,5 @@ Rubber ducking as a service.
 Requirements
 ============
 
-npm install -g coffee-script
-npm install -g phantomjs
-npm install -g phantom-jasmine
+npm install -g coffee-script phantomjs phantom-jasmine
 
