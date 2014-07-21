@@ -29,7 +29,8 @@ describe "The Brain's Pattern Matcher", ->
       "Please help me with my ducky",
       "I have a ducky that keeps lying to me",
       "Our ducky is buggering up",
-      "If I try to do anything funky, the ducky will balls it up"
+      "If I try to do anything funky, the ducky will balls it up",
+      "Something has gone wrong between the ducky and the bread."
     ]
 
     for text in @texts
