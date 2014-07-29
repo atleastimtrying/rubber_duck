@@ -140,11 +140,14 @@ footer a{
   min-height:128px;
 }
 #carbonads{
-  position:absolute;
-  top:8px;
-  right:8px;
-  width:100px;
-  height:180px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 128px;
+  height: 180px;
+  font-size: 12px;
+  background: #ccc;
+  padding: 8px;
 }
 #carbonads img{
   width:auto;
