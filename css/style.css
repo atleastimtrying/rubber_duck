@@ -195,6 +195,12 @@ footer a{
   header{
     padding:64px 32px;
   }
+  footer{
+    position:static;
+  }
+  body{
+    margin-bottom:0;
+  }
 }
 @media all and (max-width:450px){
   h1{
