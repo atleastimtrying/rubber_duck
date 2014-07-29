@@ -146,6 +146,10 @@ footer a{
   width:100px;
   height:180px;
 }
+#carbonads img{
+  width:auto;
+  float:none;
+}
 @media all and (max-width:1040px){
   .wrapper img{
     margin-left:-200px;
