@@ -148,6 +148,7 @@ footer a{
   font-size: 12px;
   background: #ccc;
   padding: 8px;
+  border-radius:2px;
 }
 #carbonads img{
   width:auto;
