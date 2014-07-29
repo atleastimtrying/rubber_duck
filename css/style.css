@@ -139,7 +139,11 @@ footer a{
 #duck textarea{
   min-height:128px;
 }
-
+#_carbonads_js{
+  position:absolute;
+  top:8px;
+  right:8px;
+}
 @media all and (max-width:1040px){
   .wrapper img{
     margin-left:-200px;
