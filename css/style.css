@@ -154,6 +154,10 @@ footer a{
   float:none;
   margin-left:0;
 }
+#carbonads .carbon-poweredby{
+  display:block;
+  color:#333;
+}
 @media all and (max-width:1040px){
   .wrapper img{
     margin-left:-200px;
