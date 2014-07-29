@@ -213,11 +213,6 @@ footer a{
     font-size:20px;
   }
 }
-@media all and (max-width:430px){
-  body{
-    margin-bottom:64px;
-  }
-}
 @media all and (max-width:400px){
   header{
     padding:32px 16px;
