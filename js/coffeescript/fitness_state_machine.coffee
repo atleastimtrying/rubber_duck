@@ -93,7 +93,7 @@ class duck.FitnessStateMachine
         pre_action: ->
         post_action: ->
         question: ->
-          "Wow, that sounds complicated. Any chance that #{machine.noun} can be broken into smaller parts that you could test seperately?"
+          "Wow, that sounds complicated. Any chance that #{machine.noun} can be broken into smaller parts that you could test separately?"
         answer_type: 'short'
       },
       {
@@ -104,7 +104,7 @@ class duck.FitnessStateMachine
         pre_action: ->
         post_action: ->
         question: ->
-          "So does it do just one thing? Any chance that #{machine.noun}, or parts of it, can be isolated and test seperately?"
+          "So does it do just one thing? Any chance that #{machine.noun}, or parts of it, can be isolated and test separately?"
         answer_type: 'short'
       },
       {
